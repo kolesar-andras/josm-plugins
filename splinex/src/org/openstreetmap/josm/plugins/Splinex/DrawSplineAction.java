@@ -22,6 +22,7 @@ import org.openstreetmap.josm.data.coor.EastNorth;
 import org.openstreetmap.josm.data.osm.DataSet;
 import org.openstreetmap.josm.data.osm.Node;
 import org.openstreetmap.josm.data.osm.Way;
+import org.openstreetmap.josm.data.osm.event.*;
 import org.openstreetmap.josm.data.osm.visitor.paint.MapPaintSettings;
 import org.openstreetmap.josm.data.preferences.NamedColorProperty;
 import org.openstreetmap.josm.gui.MainApplication;
@@ -47,7 +48,7 @@ import org.openstreetmap.josm.tools.Shortcut;
 
 @SuppressWarnings("serial")
 public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPressReleaseListener, ModifierExListener,
-        LayerChangeListener, ActiveLayerChangeListener {
+        LayerChangeListener, ActiveLayerChangeListener, DataSetListener {
     private final Cursor cursorJoinNode;
     private final Cursor cursorJoinWay;
 
@@ -101,7 +102,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
         map.mapView.addMouseMotionListener(this);
         map.keyDetector.addModifierExListener(this);
         map.keyDetector.addKeyListener(this);
-
+        getLayerManager().getEditLayer().getDataSet().addDataSetListener(this);
         createSplineFromSelection();
     }
 
@@ -401,6 +402,52 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
     @Override
     protected void updateEnabledState() {
         setEnabled(getLayerManager().getEditLayer() != null);
+    }
+
+    @Override
+    public void primitivesAdded(PrimitivesAddedEvent event) {
+    }
+
+    @Override
+    public void primitivesRemoved(PrimitivesRemovedEvent event) {
+        Spline spl = getSpline();
+        if (spl == null) return;
+        for (OsmPrimitive primitive : event.getPrimitives()) {
+            if (primitive instanceof Node) {
+                spl.removeNode((Node) primitive);
+            }
+        }
+        MainApplication.getLayerManager().invalidateEditLayer();
+    }
+
+    @Override
+    public void tagsChanged(TagsChangedEvent event) {
+
+    }
+
+    @Override
+    public void nodeMoved(NodeMovedEvent event) {
+
+    }
+
+    @Override
+    public void wayNodesChanged(WayNodesChangedEvent event) {
+
+    }
+
+    @Override
+    public void relationMembersChanged(RelationMembersChangedEvent event) {
+
+    }
+
+    @Override
+    public void otherDatasetChange(AbstractDatasetChangedEvent event) {
+
+    }
+
+    @Override
+    public void dataChanged(DataChangedEvent event) {
+
     }
 
     public static class BackSpaceAction extends AbstractAction {

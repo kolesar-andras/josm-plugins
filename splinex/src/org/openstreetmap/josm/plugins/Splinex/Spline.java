@@ -80,6 +80,16 @@ public class Spline {
         return nodes.get(0) == nodes.get(nodes.size() - 1);
     }
 
+    public void removeNode(Node node) {
+        Iterator<SNode> itr = nodes.iterator();
+        while (itr.hasNext()) {
+            SNode sNode = itr.next();
+            if (sNode.node == node) {
+                itr.remove();
+            }
+        }
+    }
+
     //int chkTime;
 
     public void paint(Graphics2D g, MapView mv, Color curveColor, Color ctlColor, Point helperEndpoint, short direction) {
