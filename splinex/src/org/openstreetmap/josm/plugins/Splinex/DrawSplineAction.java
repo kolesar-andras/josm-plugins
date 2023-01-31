@@ -39,8 +39,11 @@ import org.openstreetmap.josm.gui.layer.MapViewPaintable;
 import org.openstreetmap.josm.gui.layer.OsmDataLayer;
 import org.openstreetmap.josm.gui.util.KeyPressReleaseListener;
 import org.openstreetmap.josm.gui.util.ModifierExListener;
-import org.openstreetmap.josm.plugins.Splinex.Spline.PointHandle;
 import org.openstreetmap.josm.plugins.Splinex.Spline.SplinePoint;
+import org.openstreetmap.josm.plugins.Splinex.command.AddSplineNodeCommand;
+import org.openstreetmap.josm.plugins.Splinex.command.CloseSplineCommand;
+import org.openstreetmap.josm.plugins.Splinex.command.DeleteSplineNodeCommand;
+import org.openstreetmap.josm.plugins.Splinex.command.EditSplineCommand;
 import org.openstreetmap.josm.spi.preferences.Config;
 import org.openstreetmap.josm.tools.ImageProvider;
 import org.openstreetmap.josm.tools.Logging;
@@ -167,7 +170,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
         if (e.getClickCount() == 2) {
             if (!spl.isClosed() && spl.nodeCount() > 1 && ph != null && ph.point == SplinePoint.ENDPOINT
                     && ((ph.idx == 0 && direction == 1) || (ph.idx == spl.nodeCount() - 1 && direction == -1))) {
-                UndoRedoHandler.getInstance().add(spl.new CloseSplineCommand());
+                UndoRedoHandler.getInstance().add(new CloseSplineCommand(spl));
                 return;
             }
             spl.finishSpline();
@@ -204,7 +207,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
             }
             if (ph.point != SplinePoint.ENDPOINT && UndoRedoHandler.getInstance().hasUndoCommands()) {
                 Command cmd = UndoRedoHandler.getInstance().getLastCommand();
-                if (!(cmd instanceof Spline.EditSplineCommand && ((Spline.EditSplineCommand) cmd).sn == ph.sn))
+                if (!(cmd instanceof EditSplineCommand && ((EditSplineCommand) cmd).sNodeIs(ph.sn)))
                     dragControl = true;
             }
             return;
@@ -232,8 +235,8 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
             existing = false;
         }
         int idx = direction == -1 ? 0 : spl.nodeCount();
-        UndoRedoHandler.getInstance().add(spl.new AddSplineNodeCommand(new Spline.SNode(n), existing, idx));
-        ph = spl.new PointHandle(idx, direction == -1 ? SplinePoint.CONTROL_PREV : SplinePoint.CONTROL_NEXT);
+        UndoRedoHandler.getInstance().add(new AddSplineNodeCommand(spl, new Spline.SNode(n), existing, idx));
+        ph = new PointHandle(spl, idx, direction == -1 ? SplinePoint.CONTROL_PREV : SplinePoint.CONTROL_NEXT);
         lockCounterpart = true;
         MainApplication.getLayerManager().invalidateEditLayer();
     }
@@ -287,7 +290,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
                 mc.applyVectorTo(en);
         } else {
             if (dragControl) {
-                UndoRedoHandler.getInstance().add(new Spline.EditSplineCommand(ph.sn));
+                UndoRedoHandler.getInstance().add(new EditSplineCommand(ph.sn));
                 dragControl = false;
             }
             ph.movePoint(en);
@@ -495,7 +498,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
             Spline spl = ph.getSpline();
             if (spl.nodeCount() == 3 && spl.isClosed() && ph.idx == 1)
                 return; // Don't allow to delete node when it results with two-node closed spline
-            UndoRedoHandler.getInstance().add(spl.new DeleteSplineNodeCommand(ph.idx));
+            UndoRedoHandler.getInstance().add(new DeleteSplineNodeCommand(spl, ph.idx));
             MainApplication.getLayerManager().invalidateEditLayer();
             e.consume();
         }

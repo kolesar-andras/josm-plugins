@@ -12,16 +12,13 @@ import java.awt.geom.Point2D;
 import java.util.*;
 import java.util.List;
 
-import javax.swing.Icon;
 import javax.swing.JOptionPane;
 
 import org.openstreetmap.josm.command.AddCommand;
 import org.openstreetmap.josm.command.Command;
-import org.openstreetmap.josm.command.SequenceCommand;
 import org.openstreetmap.josm.data.UndoRedoHandler;
 import org.openstreetmap.josm.data.coor.EastNorth;
 import org.openstreetmap.josm.data.osm.DataSet;
-import org.openstreetmap.josm.data.osm.DefaultNameFormatter;
 import org.openstreetmap.josm.data.osm.Node;
 import org.openstreetmap.josm.data.osm.OsmPrimitive;
 import org.openstreetmap.josm.data.osm.Way;
@@ -30,7 +27,8 @@ import org.openstreetmap.josm.data.projection.ProjectionRegistry;
 import org.openstreetmap.josm.gui.MainApplication;
 import org.openstreetmap.josm.gui.MapView;
 import org.openstreetmap.josm.gui.NavigatableComponent;
-import org.openstreetmap.josm.tools.ImageProvider;
+import org.openstreetmap.josm.plugins.Splinex.command.FinishSplineCommand;
+import org.openstreetmap.josm.plugins.Splinex.command.UndeleteNodeCommand;
 
 public class Spline {
     public static IntegerProperty PROP_SPLINEPOINTS = new IntegerProperty("edit.spline.num_points", 10);
@@ -46,7 +44,7 @@ public class Spline {
         }
     }
 
-    private final NodeList nodes = new NodeList();
+    public final NodeList nodes = new NodeList();
 
     public SNode getFirstSegment() {
         if (nodes.isEmpty())
@@ -154,95 +152,13 @@ public class Spline {
         ENDPOINT, CONTROL_PREV, CONTROL_NEXT
     }
 
-    public class PointHandle {
-        public final int idx;
-        public final SNode sn;
-        public final SplinePoint point;
-
-        public PointHandle(int idx, SplinePoint point) {
-            if (point == null)
-                throw new IllegalArgumentException("Invalid SegmentPoint passed for PointHandle contructor");
-            this.idx = idx;
-            this.sn = nodes.get(idx);
-            this.point = point;
-        }
-
-        public PointHandle otherPoint(SplinePoint point) {
-            return new PointHandle(idx, point);
-        }
-
-        public Spline getSpline() {
-            return Spline.this;
-        }
-
-        public EastNorth getPoint() {
-            EastNorth en = sn.node.getEastNorth();
-            switch (point) {
-            case ENDPOINT:
-                return en;
-            case CONTROL_PREV:
-                return en.add(sn.cprev);
-            case CONTROL_NEXT:
-                return en.add(sn.cnext);
-            }
-            throw new AssertionError();
-        }
-
-        public void movePoint(EastNorth en) {
-            switch (point) {
-            case ENDPOINT:
-                sn.node.setEastNorth(en);
-                return;
-            case CONTROL_PREV:
-                sn.cprev = en.subtract(sn.node.getEastNorth());
-                return;
-            case CONTROL_NEXT:
-                sn.cnext = en.subtract(sn.node.getEastNorth());
-                return;
-            }
-            throw new AssertionError();
-        }
-
-        public void moveCounterpart(boolean lockLength) {
-            if (point == SplinePoint.CONTROL_NEXT) {
-                sn.cprev = computeCounterpart(sn.cprev, sn.cnext, lockLength);
-            } else if (point == SplinePoint.CONTROL_PREV) {
-                sn.cnext = computeCounterpart(sn.cnext, sn.cprev, lockLength);
-            }
-        }
-
-        public EastNorth computeCounterpart(EastNorth previous, EastNorth moved, boolean locklength) {
-            double length;
-            if (locklength) {
-                length = moved.length();
-            } else {
-                length = previous.length();
-            }
-            double heading = moved.heading(EastNorth.ZERO);
-            return new EastNorth(length * Math.sin(heading), length * Math.cos(heading));
-        }
-
-        @Override
-        public boolean equals(Object other) {
-            if (!(other instanceof PointHandle))
-                return false;
-            PointHandle o = (PointHandle) other;
-            return this.sn == o.sn && this.point == o.point;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(sn, point);
-        }
-    }
-
     public PointHandle getNearestPoint(MapView mv, Point2D point) {
         PointHandle bestPH = null;
         double bestDistSq = NavigatableComponent.PROP_SNAP_DISTANCE.get();
         bestDistSq = bestDistSq * bestDistSq;
         for (int i = 0; i < nodes.size(); i++) {
             for (SplinePoint sp : SplinePoint.values()) {
-                PointHandle ph = new PointHandle(i, sp);
+                PointHandle ph = new PointHandle(this, i, sp);
                 double distSq = point.distanceSq(mv.getPoint2D(ph.getPoint()));
                 if (distSq < bestDistSq) {
                     bestPH = ph;
@@ -314,7 +230,7 @@ public class Spline {
         }
         if (!cmds.isEmpty()) {
             cmds.add(new AddCommand(ds, w));
-            UndoRedoHandler.getInstance().add(new FinishSplineCommand(cmds));
+            UndoRedoHandler.getInstance().add(new FinishSplineCommand(this, cmds));
         }
     }
 
@@ -335,238 +251,12 @@ public class Spline {
                 + Math.pow(t, 3) * a3;
     }
 
-    public class AddSplineNodeCommand extends Command {
-        private final SNode sn;
-        private final boolean existing;
-        private final int idx;
-        boolean affected;
-
-        public AddSplineNodeCommand(SNode sn, boolean existing, int idx) {
-            super(MainApplication.getLayerManager().getEditDataSet());
-            this.sn = sn;
-            this.existing = existing;
-            this.idx = idx;
-        }
-
-        public AddSplineNodeCommand(SNode sn, boolean existing) {
-            this(sn, existing, nodes.size() - 1);
-        }
-
-        @Override
-        public boolean executeCommand() {
-            nodes.add(idx, sn);
-            if (!existing) {
-                getAffectedDataSet().addPrimitive(sn.node);
-                sn.node.setModified(true);
-                affected = true;
-            }
-            return true;
-        }
-
-        @Override
-        public void undoCommand() {
-            if (!existing)
-                getAffectedDataSet().removePrimitive(sn.node);
-            nodes.remove(idx);
-            affected = false;
-        }
-
-        @Override
-        public String getDescriptionText() {
-            if (existing)
-                return tr("Add an existing node to spline: {0}",
-                        sn.node.getDisplayName(DefaultNameFormatter.getInstance()));
-            return tr("Add a new node to spline: {0}", sn.node.getDisplayName(DefaultNameFormatter.getInstance()));
-        }
-
-        @Override
-        public void fillModifiedData(Collection<OsmPrimitive> modified, Collection<OsmPrimitive> deleted,
-                Collection<OsmPrimitive> added) {
-            if (!existing)
-                added.add(sn.node);
-        }
-
-        @Override
-        public Icon getDescriptionIcon() {
-            return ImageProvider.get("data", "node");
-        }
-
-        @Override
-        public Collection<? extends OsmPrimitive> getParticipatingPrimitives() {
-            return affected ? Collections.singleton(sn.node) : super.getParticipatingPrimitives();
-        }
-    }
-
-    public class DeleteSplineNodeCommand extends Command {
-        int idx;
-        SNode sn;
-        boolean wasDeleted;
-        boolean affected;
-
-        public DeleteSplineNodeCommand(int idx) {
-            super(MainApplication.getLayerManager().getEditDataSet());
-            this.idx = idx;
-        }
-
-        private boolean deleteUnderlying() {
-            return !sn.node.hasKeys() && sn.node.getReferrers().isEmpty() && (!isClosed() || idx < (nodes.size() - 1));
-        }
-
-        @Override
-        public boolean executeCommand() {
-            if (isClosed() && idx == 0)
-                idx = nodes.size() - 1;
-            sn = nodes.get(idx);
-            wasDeleted = sn.node.isDeleted();
-            if (deleteUnderlying()) {
-                sn.node.setDeleted(true);
-                affected = true;
-            }
-            nodes.remove(idx);
-            return true;
-        }
-
-        @Override
-        public void undoCommand() {
-            affected = false;
-            sn.node.setDeleted(wasDeleted);
-            nodes.add(idx, sn);
-        }
-
-        @Override
-        public String getDescriptionText() {
-            return tr("Delete spline node {0}", sn.node.getDisplayName(DefaultNameFormatter.getInstance()));
-        }
-
-        @Override
-        public void fillModifiedData(Collection<OsmPrimitive> modified, Collection<OsmPrimitive> deleted,
-                Collection<OsmPrimitive> added) {
-            if (deleteUnderlying())
-                deleted.add(sn.node);
-        }
-
-        @Override
-        public Icon getDescriptionIcon() {
-            return ImageProvider.get("data", "node");
-        }
-
-        @Override
-        public Collection<? extends OsmPrimitive> getParticipatingPrimitives() {
-            return affected ? Collections.singleton(sn.node) : super.getParticipatingPrimitives();
-        }
-    }
-
-    public static class EditSplineCommand extends Command {
-        EastNorth cprev;
-        EastNorth cnext;
-        SNode sn;
-
-        public EditSplineCommand(SNode sn) {
-            super(MainApplication.getLayerManager().getEditDataSet());
-            this.sn = sn;
-            cprev = sn.cprev.add(0, 0);
-            cnext = sn.cnext.add(0, 0);
-        }
-
-        @Override
-        public boolean executeCommand() {
-            EastNorth en = sn.cprev;
-            sn.cprev = this.cprev;
-            this.cprev = en;
-            en = sn.cnext;
-            sn.cnext = this.cnext;
-            this.cnext = en;
-            return true;
-        }
-
-        @Override
-        public void undoCommand() {
-            executeCommand();
-        }
-
-        @Override
-        public void fillModifiedData(Collection<OsmPrimitive> modified, Collection<OsmPrimitive> deleted,
-                Collection<OsmPrimitive> added) {
-            // This command doesn't touches OSM data
-        }
-
-        @Override
-        public String getDescriptionText() {
-            return "Edit spline";
-        }
-
-        @Override
-        public Icon getDescriptionIcon() {
-            return ImageProvider.get("data", "node");
-        }
-    }
-
-    public class CloseSplineCommand extends Command {
-        
-        public CloseSplineCommand() {
-            super(MainApplication.getLayerManager().getEditDataSet());
-        }
-
-        @Override
-        public boolean executeCommand() {
-            nodes.add(nodes.get(0));
-            return true;
-        }
-
-        @Override
-        public void undoCommand() {
-            nodes.remove(nodes.size() - 1);
-        }
-
-        @Override
-        public void fillModifiedData(Collection<OsmPrimitive> modified, Collection<OsmPrimitive> deleted,
-                Collection<OsmPrimitive> added) {
-            // This command doesn't touches OSM data
-        }
-
-        @Override
-        public String getDescriptionText() {
-            return "Close spline";
-        }
-
-        @Override
-        public Icon getDescriptionIcon() {
-            return ImageProvider.get("aligncircle");
-        }
-    }
-
     public List<OsmPrimitive> getNodes() {
         ArrayList<OsmPrimitive> result = new ArrayList<>(nodes.size());
         for (SNode sn : nodes) {
             result.add(sn.node);
         }
         return result;
-    }
-
-    public class FinishSplineCommand extends SequenceCommand {
-        public SNode[] saveSegments;
-
-        public FinishSplineCommand(Collection<Command> sequenz) {
-            super(tr("Finish spline"), sequenz);
-        }
-
-        @Override
-        public boolean executeCommand() {
-            saveSegments = new SNode[nodes.size()];
-            int i = 0;
-            for (SNode sn : nodes) {
-                saveSegments[i++] = sn;
-            }
-            nodes.clear();
-            return super.executeCommand();
-        }
-
-        @Override
-        public void undoCommand() {
-            super.undoCommand();
-            nodes.clear();
-            nodes.addAll(Arrays.asList(saveSegments));
-        }
     }
 
     public static Spline fromNodes(List<Node> nodes, double smooth, boolean closed) {

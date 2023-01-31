@@ -12,7 +12,7 @@ import java.util.NoSuchElementException;
  * this list hides deleted items
  */
 
-class NodeList extends ArrayList<Spline.SNode> {
+public class NodeList extends ArrayList<Spline.SNode> {
     protected final int NONE = -1;
 
     class NodeIterator implements Iterator {
