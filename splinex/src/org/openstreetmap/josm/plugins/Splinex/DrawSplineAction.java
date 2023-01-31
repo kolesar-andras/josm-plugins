@@ -1,7 +1,6 @@
 // License: GPL. For details, see LICENSE file.
 package org.openstreetmap.josm.plugins.Splinex;
 
-import static org.openstreetmap.josm.plugins.Splinex.SplinexPlugin.EPSILON;
 import static org.openstreetmap.josm.tools.I18n.marktr;
 import static org.openstreetmap.josm.tools.I18n.tr;
 
@@ -147,6 +146,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
     private Point clickPos;
     public int index = 0;
     boolean lockCounterpart;
+    boolean lockCounterpartLength;
     private MoveCommand mc;
     private boolean dragControl;
     private boolean dragSpline;
@@ -183,12 +183,16 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
                 if (ph.point == SplinePoint.ENDPOINT) {
                     ph = ph.otherPoint(SplinePoint.CONTROL_NEXT);
                     lockCounterpart = true;
+                    lockCounterpartLength = true;
                 } else
                     lockCounterpart = false;
-            } else {
-                lockCounterpart = (ph.point != SplinePoint.ENDPOINT
-                        && Math.abs(ph.sn.cprev.east() + ph.sn.cnext.east()) < EPSILON && Math.abs(ph.sn.cprev.north()
-                        + ph.sn.cnext.north()) < EPSILON);
+            } else if (ph.point != SplinePoint.ENDPOINT) {
+                lockCounterpart =
+                        // TODO handle turnover at north
+                        Math.abs(ph.sn.cprev.heading(EastNorth.ZERO) - EastNorth.ZERO.heading(ph.sn.cnext)) < 5/180.0*Math.PI;
+                lockCounterpartLength =
+                        Math.min(ph.sn.cprev.length(), ph.sn.cnext.length()) /
+                        Math.max(ph.sn.cprev.length(), ph.sn.cnext.length()) > 0.95;
             }
             if (ph.point == SplinePoint.ENDPOINT && UndoRedoHandler.getInstance().hasUndoCommands()) {
                 Command cmd = UndoRedoHandler.getInstance().getLastCommand();
@@ -291,10 +295,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
             }
             ph.movePoint(en);
             if (lockCounterpart) {
-                if (ph.point == SplinePoint.CONTROL_NEXT)
-                    ph.sn.cprev = new EastNorth(0, 0).subtract(ph.sn.cnext);
-                else if (ph.point == SplinePoint.CONTROL_PREV)
-                    ph.sn.cnext = new EastNorth(0, 0).subtract(ph.sn.cprev);
+                ph.moveCounterpart(lockCounterpartLength);
             }
         }
         MainApplication.getMap().repaint();

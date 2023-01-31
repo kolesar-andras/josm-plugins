@@ -185,6 +185,25 @@ public class Spline {
             throw new AssertionError();
         }
 
+        public void moveCounterpart(boolean lockLength) {
+            if (point == SplinePoint.CONTROL_NEXT) {
+                sn.cprev = computeCounterpart(sn.cprev, sn.cnext, lockLength);
+            } else if (point == SplinePoint.CONTROL_PREV) {
+                sn.cnext = computeCounterpart(sn.cnext, sn.cprev, lockLength);
+            }
+        }
+
+        public EastNorth computeCounterpart(EastNorth previous, EastNorth moved, boolean locklength) {
+            double length;
+            if (locklength) {
+                length = moved.length();
+            } else {
+                length = previous.length();
+            }
+            double heading = moved.heading(EastNorth.ZERO);
+            return new EastNorth(length * Math.sin(heading), length * Math.cos(heading));
+        }
+
         @Override
         public boolean equals(Object other) {
             if (!(other instanceof PointHandle))
