@@ -4,10 +4,7 @@ package org.openstreetmap.josm.plugins.Splinex;
 import static org.openstreetmap.josm.tools.I18n.marktr;
 import static org.openstreetmap.josm.tools.I18n.tr;
 
-import java.awt.Color;
-import java.awt.Cursor;
-import java.awt.Graphics2D;
-import java.awt.Point;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
@@ -384,6 +381,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
 
     @Override
     public void paint(Graphics2D g, MapView mv, Bounds box) {
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         Spline spl = getSpline();
         if (spl == null)
             return;

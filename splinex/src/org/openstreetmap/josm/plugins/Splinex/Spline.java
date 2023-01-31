@@ -133,7 +133,6 @@ public class Spline {
     public void paintProposedNodes(Graphics2D g, MapView mv) {
         if (nodes.isEmpty())
             return;
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         double radius = 2.0;
         Stroke stroke = new BasicStroke(1.2f);
         Color color = new Color(1.0f, 1.0f, 1.0f, 0.6f);
