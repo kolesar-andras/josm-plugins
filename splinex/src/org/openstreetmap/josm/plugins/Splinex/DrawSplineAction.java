@@ -129,7 +129,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
         map.keyDetector.removeModifierExListener(this);
         map.keyDetector.removeKeyListener(this);
         removeHighlighting();
-        map.mapView.repaint();
+        MainApplication.getLayerManager().invalidateEditLayer();
     }
 
     @Override
@@ -171,7 +171,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
                 return;
             }
             spl.finishSpline();
-            MainApplication.getMap().repaint();
+            MainApplication.getLayerManager().invalidateEditLayer();
             return;
         }
         clickPos = e.getPoint();
@@ -235,7 +235,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
         UndoRedoHandler.getInstance().add(spl.new AddSplineNodeCommand(new Spline.SNode(n), existing, idx));
         ph = spl.new PointHandle(idx, direction == -1 ? SplinePoint.CONTROL_PREV : SplinePoint.CONTROL_NEXT);
         lockCounterpart = true;
-        MainApplication.getMap().repaint();
+        MainApplication.getLayerManager().invalidateEditLayer();
     }
 
     @Override
@@ -274,7 +274,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
                 clickPos = null;
             } else
                 mc.applyVectorTo(en);
-            MainApplication.getMap().repaint();
+            MainApplication.getLayerManager().invalidateEditLayer();
             return;
         }
         clickPos = null;
@@ -295,7 +295,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
                 ph.moveCounterpart(lockCounterpartLength);
             }
         }
-        MainApplication.getMap().repaint();
+        MainApplication.getLayerManager().invalidateEditLayer();
     }
 
     Node nodeHighlight;
@@ -342,7 +342,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
 
         if (redraw || oldHelperEndpoint != helperEndpoint || (oldph == null && ph != null)
                 || (oldph != null && !oldph.equals(ph)))
-            MainApplication.getMap().repaint();
+            MainApplication.getLayerManager().invalidateEditLayer();
     }
 
     /**
@@ -354,7 +354,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
             return;
         removeHighlighting();
         helperEndpoint = null;
-        MainApplication.getMap().mapView.repaint();
+        MainApplication.getLayerManager().invalidateEditLayer();
     }
 
     private boolean setHighlight(Node n) {
@@ -456,11 +456,12 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
             if (spl.nodeCount() == 3 && spl.isClosed() && ph.idx == 1)
                 return; // Don't allow to delete node when it results with two-node closed spline
             UndoRedoHandler.getInstance().add(spl.new DeleteSplineNodeCommand(ph.idx));
+            MainApplication.getLayerManager().invalidateEditLayer();
             e.consume();
         }
         if (e.getKeyCode() == KeyEvent.VK_ESCAPE && direction != 0) {
             direction = 0;
-            MainApplication.getMap().mapView.repaint();
+            MainApplication.getLayerManager().invalidateEditLayer();
             e.consume();
         }
     }
