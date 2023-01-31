@@ -5,10 +5,8 @@ import static java.lang.Math.sqrt;
 import static org.openstreetmap.josm.plugins.Splinex.SplinexPlugin.EPSILON;
 import static org.openstreetmap.josm.tools.I18n.tr;
 
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.Point;
+import java.awt.*;
+import java.awt.geom.Ellipse2D;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
@@ -130,6 +128,41 @@ public class Spline {
         }
         chkTime = 0;
         sht.chkCnt = 0; */
+    }
+
+    public void paintProposedNodes(Graphics2D g, MapView mv) {
+        if (nodes.isEmpty())
+            return;
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        double fillRadius = 16.0;
+        double strokeRadius = 10.0;
+        Stroke stroke = new BasicStroke(1.2f);
+        Color fillColor = new Color(0.0f, 0.0f, 0.0f, 0.4f);
+        Color strokeColor = new Color(1.0f, 1.0f, 1.0f, 0.6f);
+        int detail = PROP_SPLINEPOINTS.get();
+        Iterator<SNode> it = nodes.iterator();
+        SNode sn = it.next();
+        EastNorth a = sn.node.getEastNorth();
+        EastNorth ca = a.add(sn.cnext);
+        while (it.hasNext()) {
+            sn = it.next();
+            EastNorth b = sn.node.getEastNorth();
+            EastNorth cb = b.add(sn.cprev);
+            if (!a.equalsEpsilon(ca, EPSILON) || !b.equalsEpsilon(cb, EPSILON))
+                for (int i = 1; i < detail; i++) {
+                    Point point = mv.getPoint(
+                        cubicBezier(a, ca, cb, b, (double) i / detail));
+                    Ellipse2D.Double circle = new Ellipse2D.Double(point.x-fillRadius/2, point.y-fillRadius/2, fillRadius, fillRadius);
+                    g.setColor(fillColor);
+                    g.fill(circle);
+                    circle = new Ellipse2D.Double(point.x-strokeRadius/2, point.y-strokeRadius/2, strokeRadius, strokeRadius);
+                    g.setStroke(stroke);
+                    g.setColor(strokeColor);
+                    g.draw(circle);
+                }
+            a = b;
+            ca = a.add(sn.cnext);
+        }
     }
 
     public enum SplinePoint {

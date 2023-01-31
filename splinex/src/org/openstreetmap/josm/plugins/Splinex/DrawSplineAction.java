@@ -388,6 +388,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
         if (spl == null)
             return;
         spl.paint(g, mv, rubberLineColor, Color.green, helperEndpoint, direction);
+        spl.paintProposedNodes(g, mv);
         if (ph != null && (ph.point != SplinePoint.ENDPOINT || (nodeHighlight != null && nodeHighlight.isDeleted()))) {
             g.setColor(MapPaintSettings.INSTANCE.getSelectedColor());
             Point p = mv.getPoint(ph.getPoint());
