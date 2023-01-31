@@ -74,6 +74,8 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
         cursorJoinWay = ImageProvider.getCursor("crosshair", "joinway");
         MainApplication.getLayerManager().addLayerChangeListener(this);
         MainApplication.getLayerManager().addActiveLayerChangeListener(this);
+        MapFrame map = MainApplication.getMap();
+        map.mapView.addTemporaryLayer(this);
         readPreferences();
     }
 
@@ -97,8 +99,6 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
         MapFrame map = MainApplication.getMap();
         map.mapView.addMouseListener(this);
         map.mapView.addMouseMotionListener(this);
-        map.mapView.addTemporaryLayer(this);
-
         map.keyDetector.addModifierExListener(this);
         map.keyDetector.addKeyListener(this);
 
@@ -122,7 +122,6 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
         MapFrame map = MainApplication.getMap();
         map.mapView.removeMouseListener(this);
         map.mapView.removeMouseMotionListener(this);
-        map.mapView.removeTemporaryLayer(this);
         MainApplication.unregisterActionShortcut(backspaceAction, backspaceShortcut);
 
         map.statusLine.activateAnglePanel(false);
