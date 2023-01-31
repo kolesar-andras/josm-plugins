@@ -12,9 +12,7 @@ import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import javax.swing.AbstractAction;
 
@@ -24,8 +22,7 @@ import org.openstreetmap.josm.command.MoveCommand;
 import org.openstreetmap.josm.data.Bounds;
 import org.openstreetmap.josm.data.UndoRedoHandler;
 import org.openstreetmap.josm.data.coor.EastNorth;
-import org.openstreetmap.josm.data.osm.Node;
-import org.openstreetmap.josm.data.osm.OsmPrimitive;
+import org.openstreetmap.josm.data.osm.*;
 import org.openstreetmap.josm.data.osm.visitor.paint.MapPaintSettings;
 import org.openstreetmap.josm.data.preferences.NamedColorProperty;
 import org.openstreetmap.josm.gui.MainApplication;
@@ -105,6 +102,8 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
 
         map.keyDetector.addModifierExListener(this);
         map.keyDetector.addKeyListener(this);
+
+        createSplineFromSelection();
     }
 
     int initialMoveDelay, initialMoveThreshold;
@@ -467,4 +466,22 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
     public void doKeyReleased(KeyEvent e) {
         // Do nothing
     }
+
+    protected void createSplineFromSelection() {
+        DataSet ds = getLayerManager().getEditDataSet();
+        if (ds == null) return;
+        Way way = ds.getLastSelectedWay();
+        if (way == null) return;
+        if (way.getNodesCount() < 3) return;
+        List<EastNorth> coords = new ArrayList<>();
+        for (Node node : way.getNodes()) {
+            coords.add(node.getEastNorth());
+        }
+        createSplineFromCoords(coords);
+    }
+
+    protected void createSplineFromCoords(List<EastNorth> coords) {
+        Logging.info("Got " + coords.size() + " coords.");
+    }
+
 }
