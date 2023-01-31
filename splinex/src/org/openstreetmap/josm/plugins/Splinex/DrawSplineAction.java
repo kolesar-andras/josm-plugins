@@ -406,17 +406,11 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
 
     @Override
     public void primitivesAdded(PrimitivesAddedEvent event) {
+        MainApplication.getLayerManager().invalidateEditLayer();
     }
 
     @Override
     public void primitivesRemoved(PrimitivesRemovedEvent event) {
-        Spline spl = getSpline();
-        if (spl == null) return;
-        for (OsmPrimitive primitive : event.getPrimitives()) {
-            if (primitive instanceof Node) {
-                spl.removeNode((Node) primitive);
-            }
-        }
         MainApplication.getLayerManager().invalidateEditLayer();
     }
 

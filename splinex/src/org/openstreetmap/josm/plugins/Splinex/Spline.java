@@ -9,14 +9,8 @@ import java.awt.*;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Point2D;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedList;
+import java.util.*;
 import java.util.List;
-import java.util.Objects;
 
 import javax.swing.Icon;
 import javax.swing.JOptionPane;
@@ -52,18 +46,18 @@ public class Spline {
         }
     }
 
-    private final ArrayList<SNode> nodes = new ArrayList<SNode>();
+    private final NodeList nodes = new NodeList();
 
     public SNode getFirstSegment() {
         if (nodes.isEmpty())
             return null;
-        return nodes.get(0);
+        return nodes.getFirst();
     }
 
     public SNode getLastSegment() {
         if (nodes.isEmpty())
             return null;
-        return nodes.get(nodes.size() - 1);
+        return nodes.getLast();
     }
 
     public boolean isEmpty() {
@@ -77,20 +71,8 @@ public class Spline {
     public boolean isClosed() {
         if (nodes.size() < 2)
             return false;
-        return nodes.get(0) == nodes.get(nodes.size() - 1);
+        return nodes.getFirst() == nodes.getLast();
     }
-
-    public void removeNode(Node node) {
-        Iterator<SNode> itr = nodes.iterator();
-        while (itr.hasNext()) {
-            SNode sNode = itr.next();
-            if (sNode.node == node) {
-                itr.remove();
-            }
-        }
-    }
-
-    //int chkTime;
 
     public void paint(Graphics2D g, MapView mv, Color curveColor, Color ctlColor, Point helperEndpoint, short direction) {
         if (nodes.isEmpty())
@@ -311,7 +293,7 @@ public class Spline {
         DataSet ds = MainApplication.getLayerManager().getEditDataSet();
         while (it.hasNext()) {
             sn = it.next();
-            if (sn.node.isDeleted() && sn != nodes.get(0))
+            if (sn.node.isDeleted() && sn != nodes.getFirst())
                 cmds.add(new UndeleteNodeCommand(sn.node));
             EastNorth b = sn.node.getEastNorth();
             EastNorth cb = b.add(sn.cprev);
