@@ -134,11 +134,9 @@ public class Spline {
         if (nodes.isEmpty())
             return;
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        double fillRadius = 16.0;
-        double strokeRadius = 10.0;
+        double radius = 2.0;
         Stroke stroke = new BasicStroke(1.2f);
-        Color fillColor = new Color(0.0f, 0.0f, 0.0f, 0.4f);
-        Color strokeColor = new Color(1.0f, 1.0f, 1.0f, 0.6f);
+        Color color = new Color(1.0f, 1.0f, 1.0f, 0.6f);
         int detail = PROP_SPLINEPOINTS.get();
         Iterator<SNode> it = nodes.iterator();
         SNode sn = it.next();
@@ -150,14 +148,10 @@ public class Spline {
             EastNorth cb = b.add(sn.cprev);
             if (!a.equalsEpsilon(ca, EPSILON) || !b.equalsEpsilon(cb, EPSILON))
                 for (int i = 1; i < detail; i++) {
-                    Point point = mv.getPoint(
-                        cubicBezier(a, ca, cb, b, (double) i / detail));
-                    Ellipse2D.Double circle = new Ellipse2D.Double(point.x-fillRadius/2, point.y-fillRadius/2, fillRadius, fillRadius);
-                    g.setColor(fillColor);
-                    g.fill(circle);
-                    circle = new Ellipse2D.Double(point.x-strokeRadius/2, point.y-strokeRadius/2, strokeRadius, strokeRadius);
+                    Point point = mv.getPoint(cubicBezier(a, ca, cb, b, (double) i / detail));
+                    Ellipse2D circle = new Ellipse2D.Double(point.x-radius/2, point.y-radius/2, radius, radius);
                     g.setStroke(stroke);
-                    g.setColor(strokeColor);
+                    g.setColor(color);
                     g.draw(circle);
                 }
             a = b;
