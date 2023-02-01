@@ -174,7 +174,6 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
                 return;
             }
             spl.finishSpline();
-            MainApplication.getLayerManager().invalidateEditLayer();
             return;
         }
         clickPos = e.getPoint();

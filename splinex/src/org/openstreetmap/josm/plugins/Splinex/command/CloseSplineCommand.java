@@ -21,12 +21,14 @@ public class CloseSplineCommand extends Command {
     @Override
     public boolean executeCommand() {
         spline.nodes.close();
+        MainApplication.getLayerManager().invalidateEditLayer();
         return true;
     }
 
     @Override
     public void undoCommand() {
         spline.nodes.open();
+        MainApplication.getLayerManager().invalidateEditLayer();
     }
 
     @Override
