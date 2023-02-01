@@ -40,10 +40,7 @@ import org.openstreetmap.josm.gui.layer.OsmDataLayer;
 import org.openstreetmap.josm.gui.util.KeyPressReleaseListener;
 import org.openstreetmap.josm.gui.util.ModifierExListener;
 import org.openstreetmap.josm.plugins.Splinex.Spline.SplinePoint;
-import org.openstreetmap.josm.plugins.Splinex.command.AddSplineNodeCommand;
-import org.openstreetmap.josm.plugins.Splinex.command.CloseSplineCommand;
-import org.openstreetmap.josm.plugins.Splinex.command.DeleteSplineNodeCommand;
-import org.openstreetmap.josm.plugins.Splinex.command.EditSplineCommand;
+import org.openstreetmap.josm.plugins.Splinex.command.*;
 import org.openstreetmap.josm.spi.preferences.Config;
 import org.openstreetmap.josm.tools.ImageProvider;
 import org.openstreetmap.josm.tools.Logging;
@@ -520,7 +517,8 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
         Way way = ds.getLastSelectedWay();
         if (way == null) return;
         if (way.getNodesCount() < 3) return;
-        splCached = SplineImporter.fromNodes(way.getNodes(), 0.5, way.isClosed());
+        Spline spline = SplineImporter.fromNodes(way.getNodes(), 0.5, way.isClosed());
+        UndoRedoHandler.getInstance().add(new CreateSplineCommand(splCached, spline.nodes));
     }
 
 }
