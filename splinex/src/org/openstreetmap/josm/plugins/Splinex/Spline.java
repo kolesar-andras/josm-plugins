@@ -67,8 +67,6 @@ public class Spline {
     }
 
     public boolean isClosed() {
-        if (nodes.size() < 2)
-            return false;
         return nodes.isClosed();
     }
 

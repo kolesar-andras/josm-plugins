@@ -20,6 +20,7 @@ public class NodeList extends ArrayList<Spline.SNode> {
     class NodeIterator implements Iterator<Spline.SNode> {
         protected int cursor;
         protected boolean turned;
+        protected int realIndex;
 
         @Override
         public boolean hasNext() {
@@ -37,9 +38,9 @@ public class NodeList extends ArrayList<Spline.SNode> {
         public Spline.SNode next() {
             int index = nextValidIndex();
             if (index == NONE) {
-                if (closed && !turned) {
+                if (closed && !turned && NONE != (index = nextValidIndex(0))) {
                     turned = true;
-                    return getItemAtIndex(nextValidIndex(0));
+                    return getItemAtIndex(index);
                 } else {
                     throw new NoSuchElementException();
                 }
@@ -60,18 +61,19 @@ public class NodeList extends ArrayList<Spline.SNode> {
         }
 
         protected Spline.SNode getItemAtIndex(int index) {
+            realIndex = index;
             return NodeList.super.get(index);
         }
 
         protected int getRealIndex() {
-            return cursor-1;
+            return realIndex;
         }
     }
 
     class NodeReverseIterator extends NodeIterator {
         @Override
         protected Spline.SNode getItemAtIndex(int index) {
-            return NodeList.super.get(NodeList.super.size()-1-index);
+            return super.getItemAtIndex(NodeList.super.size()-1-index);
         }
     }
 
@@ -82,7 +84,11 @@ public class NodeList extends ArrayList<Spline.SNode> {
 
     @Override
     public boolean isEmpty() {
-        return size() == 0;
+        if (closed) {
+            return size() < 3;
+        } else {
+            return size() == 0;
+        }
     }
 
     @Override
@@ -101,6 +107,12 @@ public class NodeList extends ArrayList<Spline.SNode> {
 
     @Override
     public void add(int index, Spline.SNode item) {
+        if (!super.isEmpty() && isEmpty()) {
+            // cleanup before creating new spline
+            // if previous one had only deleted nodes
+            super.clear();
+            closed = false;
+        }
         if (index == size()) {
             super.add(item);
         } else {
@@ -130,7 +142,7 @@ public class NodeList extends ArrayList<Spline.SNode> {
     }
 
     public boolean isClosed() {
-        return closed;
+        return closed && size() >= 3;
     }
 
     protected int getRealIndex(int index) {
