@@ -125,6 +125,12 @@ public class NodeList extends ArrayList<Spline.SNode> {
         return super.remove(getRealIndex(index));
     }
 
+    @Override
+    public void clear() {
+        super.clear();
+        closed = false;
+    }
+
     public Spline.SNode getFirst() {
         return new NodeIterator().next();
     }

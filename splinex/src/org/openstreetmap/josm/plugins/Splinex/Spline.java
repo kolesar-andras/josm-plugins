@@ -43,7 +43,7 @@ public class Spline {
         }
     }
 
-    public final NodeList nodes = new NodeList();
+    public NodeList nodes = new NodeList();
 
     public SNode getFirstSegment() {
         if (nodes.isEmpty())
