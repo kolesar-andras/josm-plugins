@@ -259,7 +259,6 @@ public class Spline {
 
     public static Spline fromNodes(List<Node> nodes, double smooth, boolean closed) {
         Spline spline = new Spline();
-        SNode firstNode = null;
         int size = nodes.size();
         int last;
         if (closed) {
@@ -299,12 +298,9 @@ public class Spline {
             sNode.cprev = new EastNorth(xprev, yprev);
             sNode.cnext = new EastNorth(xnext, ynext);
             spline.nodes.add(sNode);
-            if (firstNode == null) {
-                firstNode = sNode;
-            }
         }
         if (closed) {
-            spline.nodes.add(firstNode);
+            spline.nodes.close();
         } else {
             spline.nodes.add(new SNode(nodes.get(size-1)));
         }
