@@ -520,7 +520,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
         Way way = ds.getLastSelectedWay();
         if (way == null) return;
         if (way.getNodesCount() < 3) return;
-        splCached = Spline.fromNodes(way.getNodes(), 0.5, way.isClosed());
+        splCached = SplineImporter.fromNodes(way.getNodes(), 0.5, way.isClosed());
     }
 
 }
