@@ -171,9 +171,10 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
             if (!spl.isClosed() && spl.nodeCount() > 1 && ph != null && ph.point == SplinePoint.ENDPOINT
                     && ((ph.idx == 0 && direction == 1) || (ph.idx == spl.nodeCount() - 1 && direction == -1))) {
                 UndoRedoHandler.getInstance().add(new CloseSplineCommand(spl));
-                return;
+            } else {
+                spl.finishSpline();
             }
-            spl.finishSpline();
+            direction = 0;
             return;
         }
         clickPos = e.getPoint();
@@ -247,7 +248,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
         dragSpline = false;
         clickPos = null;
         mouseMoved(e);
-        if (direction == 0 && ph != null) {
+        if (direction == 0 && ph != null && e.getClickCount() < 2) {
             if (ph.idx >= ph.getSpline().nodeCount() - 1)
                 direction = 1;
             else if (ph.idx == 0)
