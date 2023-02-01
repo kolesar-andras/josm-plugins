@@ -32,23 +32,21 @@ public class DeleteSplineNodeCommand extends Command {
 
     @Override
     public boolean executeCommand() {
-        if (spline.isClosed() && idx == 0)
-            idx = spline.nodes.size() - 1;
         sn = spline.nodes.get(idx);
         wasDeleted = sn.node.isDeleted();
+        spline.nodes.remove(idx);
         if (deleteUnderlying()) {
             sn.node.setDeleted(true);
             affected = true;
         }
-        spline.nodes.remove(idx);
         return true;
     }
 
     @Override
     public void undoCommand() {
         affected = false;
-        sn.node.setDeleted(wasDeleted);
         spline.nodes.add(idx, sn);
+        sn.node.setDeleted(wasDeleted);
     }
 
     @Override

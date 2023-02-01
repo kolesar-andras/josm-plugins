@@ -69,7 +69,7 @@ public class Spline {
     public boolean isClosed() {
         if (nodes.size() < 2)
             return false;
-        return nodes.getFirst() == nodes.getLast();
+        return nodes.isClosed();
     }
 
     public void paint(Graphics2D g, MapView mv, Color curveColor, Color ctlColor, Point helperEndpoint, short direction) {

@@ -20,13 +20,13 @@ public class CloseSplineCommand extends Command {
 
     @Override
     public boolean executeCommand() {
-        spline.nodes.add(spline.nodes.get(0));
+        spline.nodes.close();
         return true;
     }
 
     @Override
     public void undoCommand() {
-        spline.nodes.remove(spline.nodes.size() - 1);
+        spline.nodes.open();
     }
 
     @Override

@@ -13,30 +13,47 @@ import java.util.NoSuchElementException;
  */
 
 public class NodeList extends ArrayList<Spline.SNode> {
-    protected final int NONE = -1;
+    protected final static int NONE = -1;
 
-    class NodeIterator implements Iterator {
+    protected boolean closed;
+
+    class NodeIterator implements Iterator<Spline.SNode> {
         protected int cursor;
-
-        protected int getRealIndex() {
-            return cursor-1;
-        }
+        protected boolean turned;
 
         @Override
         public boolean hasNext() {
-            return nextValidIndex() != NONE;
+            if (nextValidIndex() == NONE) {
+                if (closed && !turned) {
+                    return nextValidIndex(0) != NONE;
+                } else {
+                    return false;
+                }
+            }
+            return true;
         }
 
         @Override
         public Spline.SNode next() {
             int index = nextValidIndex();
-            if (index == NONE) throw new NoSuchElementException();
+            if (index == NONE) {
+                if (closed && !turned) {
+                    turned = true;
+                    return getItemAtIndex(nextValidIndex(0));
+                } else {
+                    throw new NoSuchElementException();
+                }
+            }
             cursor = index+1;
             return getItemAtIndex(index);
         }
 
         protected int nextValidIndex() {
-            for (int i=cursor; i<NodeList.super.size(); i++) {
+            return nextValidIndex(cursor);
+        }
+
+        protected int nextValidIndex(int index) {
+            for (int i=index; i<NodeList.super.size(); i++) {
                 if (!getItemAtIndex(i).node.isDeleted()) return i;
             }
             return NONE;
@@ -44,6 +61,10 @@ public class NodeList extends ArrayList<Spline.SNode> {
 
         protected Spline.SNode getItemAtIndex(int index) {
             return NodeList.super.get(index);
+        }
+
+        protected int getRealIndex() {
+            return cursor-1;
         }
     }
 
@@ -55,7 +76,7 @@ public class NodeList extends ArrayList<Spline.SNode> {
     }
 
     @Override
-    public Iterator iterator() {
+    public Iterator<Spline.SNode> iterator() {
         return new NodeIterator();
     }
 
@@ -98,6 +119,18 @@ public class NodeList extends ArrayList<Spline.SNode> {
 
     public Spline.SNode getLast() {
         return new NodeReverseIterator().next();
+    }
+
+    public void open() {
+        closed = false;
+    }
+
+    public void close() {
+        closed = true;
+    }
+
+    public boolean isClosed() {
+        return closed;
     }
 
     protected int getRealIndex(int index) {
