@@ -496,8 +496,8 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
     public void doKeyPressed(KeyEvent e) {
         if (e.getKeyCode() == KeyEvent.VK_DELETE && ph != null) {
             Spline spl = ph.getSpline();
-            if (spl.nodeCount() == 3 && spl.isClosed() && ph.idx == 1)
-                return; // Don't allow to delete node when it results with two-node closed spline
+            if (spl.isClosed() && spl.nodeCount() <= 3)
+                return; // Don't allow to delete node when spline is closed and points are few
             UndoRedoHandler.getInstance().add(new DeleteSplineNodeCommand(spl, ph.idx));
             MainApplication.getLayerManager().invalidateEditLayer();
             e.consume();
