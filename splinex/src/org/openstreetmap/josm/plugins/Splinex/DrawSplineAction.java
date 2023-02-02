@@ -234,10 +234,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
                     splineHit.splineNodeA.cnext = result.a.ctrlA.subtract(result.a.pointA);
                     splineHit.splineNodeB.cprev = result.b.ctrlB.subtract(result.b.pointB);
                 } else {
-                    List<Command> cmds = new LinkedList<>();
-                    cmds.add(new EditSplineCommand(splineHit.splineNodeA));
-                    cmds.add(new EditSplineCommand(splineHit.splineNodeB));
-                    UndoRedoHandler.getInstance().add(new DragSplineCommand(cmds));
+                    DragSplineCommand.create(splineHit);
                     dragSpline = true;
                 }
             }

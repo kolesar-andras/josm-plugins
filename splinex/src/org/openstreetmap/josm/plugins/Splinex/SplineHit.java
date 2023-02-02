@@ -1,12 +1,12 @@
 package org.openstreetmap.josm.plugins.Splinex;
 
-class SplineHit {
+public class SplineHit {
     public static final int NONE = -1;
 
-    Spline.SNode splineNodeA;
-    Spline.SNode splineNodeB;
-    double time = Double.NaN;
-    int index = NONE;
+    public Spline.SNode splineNodeA;
+    public Spline.SNode splineNodeB;
+    public double time = Double.NaN;
+    public int index = NONE;
 
     public SplineHit(Spline.SNode splineNodeA, Spline.SNode splineNodeB) {
         this.splineNodeA = splineNodeA;
