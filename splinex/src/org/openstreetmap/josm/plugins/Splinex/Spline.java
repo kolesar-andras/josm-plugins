@@ -38,8 +38,14 @@ public class Spline {
 
         public SNode(Node node) {
             this.node = node;
-            cprev = new EastNorth(0, 0);
-            cnext = new EastNorth(0, 0);
+            cprev = EastNorth.ZERO;
+            cnext = EastNorth.ZERO;
+        }
+
+        public SNode(Node node, EastNorth cprev, EastNorth cnext) {
+            this.node = node;
+            this.cprev = cprev;
+            this.cnext = cnext;
         }
     }
 
@@ -179,6 +185,7 @@ public class Spline {
         SNode prevSNode = null;
         Point2D prev = null;
         Point2D cbPrev = null;
+        int index = 0;
         for (SNode sn : nodes) {
             Point2D pt = mv.getPoint2D(sn.node);
             EastNorth en = sn.node.getEastNorth();
@@ -187,10 +194,11 @@ public class Spline {
             if (cbPrev != null)
                 if (sht.checkCurve(prev.getX(), prev.getY(), cbPrev.getX(), cbPrev.getY(), ca.getX(), ca.getY(),
                         pt.getX(), pt.getY()))
-                    return Optional.of(new SplineHit(prevSNode, sn));
+                    return Optional.of(new SplineHit(prevSNode, sn, index));
             cbPrev = mv.getPoint2D(en.add(sn.cnext));
             prev = pt;
             prevSNode = sn;
+            index++;
         }
         //chkTime = (int) ((System.nanoTime() - start) / 1000);
         return Optional.empty();

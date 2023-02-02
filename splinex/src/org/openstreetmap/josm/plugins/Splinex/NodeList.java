@@ -113,7 +113,7 @@ public class NodeList extends ArrayList<Spline.SNode> {
             super.clear();
             closed = false;
         }
-        if (index == size()) {
+        if (index == size() - (closed ? 1 : 0)) {
             super.add(item);
         } else {
             super.add(getRealIndex(index), item);

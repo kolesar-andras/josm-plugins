@@ -10,6 +10,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.util.*;
+import java.util.List;
 
 import javax.swing.AbstractAction;
 
@@ -213,11 +214,28 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
             }
             return;
         }
-        if (!ctrl && spl.doesHit(e.getX(), e.getY(), MainApplication.getMap().mapView)) {
+        if (spl.doesHit(e.getX(), e.getY(), MainApplication.getMap().mapView)) {
             Optional<SplineHit> optionalSplineHit = ClosestPoint.findTime(e.getX(), e.getY(), spl, MainApplication.getMap().mapView);
             if (optionalSplineHit.isPresent()) {
-                dragSpline = true;
                 splineHit = optionalSplineHit.get();
+                if (ctrl) {
+                    List<Command> cmds = new LinkedList<>();
+                    Split.Result result = Split.split(splineHit);
+                    Node node = new Node(result.a.pointB);
+                    Spline.SNode sNode = new Spline.SNode(
+                        node,
+                        result.a.ctrlB.subtract(result.a.pointB),
+                        result.b.ctrlA.subtract(result.b.pointA)
+                    );
+                    cmds.add(new AddSplineNodeCommand(spl, sNode, false, splineHit.index));
+                    cmds.add(new EditSplineCommand(splineHit.splineNodeA));
+                    cmds.add(new EditSplineCommand(splineHit.splineNodeB));
+                    UndoRedoHandler.getInstance().add(new InsertSplineNodeCommand(spl, cmds));
+                    splineHit.splineNodeA.cnext = result.a.ctrlA.subtract(result.a.pointA);
+                    splineHit.splineNodeB.cprev = result.b.ctrlB.subtract(result.b.pointB);
+                } else {
+                    dragSpline = true;
+                }
             }
             return;
         }
