@@ -139,8 +139,8 @@ public class Spline {
             EastNorth b = sn.node.getEastNorth();
             EastNorth cb = b.add(sn.cprev);
             if (!a.equalsEpsilon(ca, EPSILON) || !b.equalsEpsilon(cb, EPSILON))
-                for (int i = 1; i < detail; i++) {
-                    Point point = mv.getPoint(cubicBezier(a, ca, cb, b, (double) i / detail));
+                for (EastNorth eastNorth : AdaptiveBezier.calculatePoints(a, ca, cb, b, 1.0)) {
+                    Point point = mv.getPoint(eastNorth);
                     Ellipse2D circle = new Ellipse2D.Double(point.x-radius/2, point.y-radius/2, radius, radius);
                     g.setStroke(stroke);
                     g.setColor(color);
@@ -225,9 +225,8 @@ public class Spline {
             EastNorth b = sn.node.getEastNorth();
             EastNorth cb = b.add(sn.cprev);
             if (!a.equalsEpsilon(ca, EPSILON) || !b.equalsEpsilon(cb, EPSILON))
-                for (int i = 1; i < detail; i++) {
-                    Node n = new Node(ProjectionRegistry.getProjection().eastNorth2latlon(
-                            cubicBezier(a, ca, cb, b, (double) i / detail)));
+                for (EastNorth eastNorth : AdaptiveBezier.calculatePoints(a, ca, cb, b, 1.0)) {
+                    Node n = new Node(ProjectionRegistry.getProjection().eastNorth2latlon(eastNorth));
                     if (n.isOutSideWorld()) {
                         JOptionPane.showMessageDialog(MainApplication.getMainFrame(), tr("Spline goes outside of the world."));
                         return;
@@ -243,23 +242,6 @@ public class Spline {
             cmds.add(new AddCommand(ds, w));
             UndoRedoHandler.getInstance().add(new FinishSplineCommand(this, cmds));
         }
-    }
-
-    /**
-     * A cubic bezier method to calculate the point at t along the Bezier Curve
-     * give
-     */
-    public static EastNorth cubicBezier(EastNorth a0, EastNorth a1, EastNorth a2, EastNorth a3, double t) {
-        return new EastNorth(cubicBezierPoint(a0.getX(), a1.getX(), a2.getX(), a3.getX(), t), cubicBezierPoint(
-                a0.getY(), a1.getY(), a2.getY(), a3.getY(), t));
-    }
-
-    /**
-     * The cubic Bezier equation.
-     */
-    private static double cubicBezierPoint(double a0, double a1, double a2, double a3, double t) {
-        return Math.pow(1 - t, 3) * a0 + 3 * Math.pow(1 - t, 2) * t * a1 + 3 * (1 - t) * Math.pow(t, 2) * a2
-                + Math.pow(t, 3) * a3;
     }
 
     public List<OsmPrimitive> getNodes() {

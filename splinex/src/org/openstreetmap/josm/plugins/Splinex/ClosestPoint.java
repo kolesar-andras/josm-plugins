@@ -7,6 +7,7 @@ import java.util.Optional;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
+import static org.openstreetmap.josm.plugins.Splinex.CubicBezier.cubicBezier;
 
 public class ClosestPoint {
 
@@ -39,7 +40,7 @@ public class ClosestPoint {
     }
 
     protected static double squaredDistance(EastNorth point, BezierDef bezierDef, double t) {
-        return point.distanceSq(Spline.cubicBezier(
+        return point.distanceSq(cubicBezier(
             bezierDef.pointA,
             bezierDef.ctrlA,
             bezierDef.ctrlB,
