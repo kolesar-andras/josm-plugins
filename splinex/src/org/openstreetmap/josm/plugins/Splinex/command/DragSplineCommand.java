@@ -7,10 +7,10 @@ import java.util.Collection;
 
 import static org.openstreetmap.josm.tools.I18n.tr;
 
-public class InsertSplineNodeCommand extends SequenceCommand {
+public class DragSplineCommand extends SequenceCommand {
 
-    public InsertSplineNodeCommand(Collection<Command> sequenz) {
-        super(tr("Insert node to spline"), sequenz);
+    public DragSplineCommand(Collection<Command> sequenz) {
+        super(tr("Drag spline"), sequenz);
     }
 
     @Override
