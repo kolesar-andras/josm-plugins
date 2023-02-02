@@ -188,6 +188,8 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
                     lockCounterpartLength = true;
                 } else
                     lockCounterpart = false;
+            } else if (alt) {
+                deleteSplineNode();
             } else if (ph.point != SplinePoint.ENDPOINT) {
                 lockCounterpart =
                         // TODO handle turnover at north
@@ -532,11 +534,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
     @Override
     public void doKeyPressed(KeyEvent e) {
         if (e.getKeyCode() == KeyEvent.VK_DELETE && ph != null) {
-            Spline spl = ph.getSpline();
-            if (spl.isClosed() && spl.nodeCount() <= 3)
-                return; // Don't allow to delete node when spline is closed and points are few
-            UndoRedoHandler.getInstance().add(new DeleteSplineNodeCommand(spl, ph.idx));
-            MainApplication.getLayerManager().invalidateEditLayer();
+            deleteSplineNode();
             e.consume();
         }
         if (e.getKeyCode() == KeyEvent.VK_ESCAPE && direction != 0) {
@@ -549,6 +547,14 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
     @Override
     public void doKeyReleased(KeyEvent e) {
         // Do nothing
+    }
+
+    protected void deleteSplineNode() {
+        Spline spl = ph.getSpline();
+        if (spl.isClosed() && spl.nodeCount() <= 3)
+            return; // Don't allow to delete node when spline is closed and points are few
+        UndoRedoHandler.getInstance().add(new DeleteSplineNodeCommand(spl, ph.idx));
+        MainApplication.getLayerManager().invalidateEditLayer();
     }
 
     protected void createSplineFromSelection() {
