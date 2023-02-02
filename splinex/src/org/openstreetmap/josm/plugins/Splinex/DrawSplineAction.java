@@ -149,7 +149,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
     private MoveCommand mc;
     private boolean dragControl;
     private boolean dragSpline;
-    protected Spline.SplineHit splineHit;
+    protected SplineHit splineHit;
 
     @Override
     public void mousePressed(MouseEvent e) {
@@ -214,7 +214,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
             return;
         }
         if (!ctrl && spl.doesHit(e.getX(), e.getY(), MainApplication.getMap().mapView)) {
-            Optional<Spline.SplineHit> optionalSplineHit = ClosestPoint.findTime(e.getX(), e.getY(), spl, MainApplication.getMap().mapView);
+            Optional<SplineHit> optionalSplineHit = ClosestPoint.findTime(e.getX(), e.getY(), spl, MainApplication.getMap().mapView);
             if (optionalSplineHit.isPresent()) {
                 dragSpline = true;
                 splineHit = optionalSplineHit.get();

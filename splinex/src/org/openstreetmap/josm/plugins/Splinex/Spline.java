@@ -172,16 +172,6 @@ public class Spline {
         return findHit(x, y, mv).isPresent();
     }
 
-    static class SplineHit {
-        SNode splineNodeA;
-        SNode splineNodeB;
-        double time = Double.NaN;
-        public SplineHit(SNode splineNodeA, SNode splineNodeB) {
-            this.splineNodeA = splineNodeA;
-            this.splineNodeB = splineNodeB;
-        }
-    }
-
     public Optional<SplineHit> findHit(double x, double y, MapView mv) {
         //long start = System.nanoTime();
         //sht.chkCnt = 0;

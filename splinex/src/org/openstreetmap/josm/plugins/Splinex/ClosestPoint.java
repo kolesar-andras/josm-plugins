@@ -13,22 +13,8 @@ public class ClosestPoint {
     protected final static int SAMPLES = 25;
     protected final static double EPSILON = 10e-4;
 
-    static class BezierDef {
-        EastNorth pointA;
-        EastNorth pointB;
-        EastNorth ctrlA;
-        EastNorth ctrlB;
-
-        public BezierDef(Spline.SplineHit splineHit) {
-            pointA = splineHit.splineNodeA.node.getEastNorth();
-            pointB = splineHit.splineNodeB.node.getEastNorth();
-            ctrlA = splineHit.splineNodeA.cnext.add(pointA);
-            ctrlB = splineHit.splineNodeB.cprev.add(pointB);
-        }
-    }
-
-    public static Optional<Spline.SplineHit> findTime(int x, int y, Spline spline, MapView mv) {
-        Optional<Spline.SplineHit> splineHit = spline.findHit(x, y, mv);
+    public static Optional<SplineHit> findTime(int x, int y, Spline spline, MapView mv) {
+        Optional<SplineHit> splineHit = spline.findHit(x, y, mv);
         if (!splineHit.isPresent()) return splineHit;
         splineHit.get().time = findTime(mv.getEastNorth(x, y), new BezierDef(splineHit.get()));
         return splineHit;
