@@ -139,7 +139,7 @@ public class Spline {
             EastNorth b = sn.node.getEastNorth();
             EastNorth cb = b.add(sn.cprev);
             if (!a.equalsEpsilon(ca, EPSILON) || !b.equalsEpsilon(cb, EPSILON))
-                for (EastNorth eastNorth : AdaptiveBezier.calculatePoints(a, ca, cb, b, 1.0)) {
+                for (EastNorth eastNorth : CubicBezier.calculatePoints(a, ca, cb, b, detail)) {
                     Point point = mv.getPoint(eastNorth);
                     Ellipse2D circle = new Ellipse2D.Double(point.x-radius/2, point.y-radius/2, radius, radius);
                     g.setStroke(stroke);
@@ -225,7 +225,7 @@ public class Spline {
             EastNorth b = sn.node.getEastNorth();
             EastNorth cb = b.add(sn.cprev);
             if (!a.equalsEpsilon(ca, EPSILON) || !b.equalsEpsilon(cb, EPSILON))
-                for (EastNorth eastNorth : AdaptiveBezier.calculatePoints(a, ca, cb, b, 1.0)) {
+                for (EastNorth eastNorth : CubicBezier.calculatePoints(a, ca, cb, b, detail)) {
                     Node n = new Node(ProjectionRegistry.getProjection().eastNorth2latlon(eastNorth));
                     if (n.isOutSideWorld()) {
                         JOptionPane.showMessageDialog(MainApplication.getMainFrame(), tr("Spline goes outside of the world."));
