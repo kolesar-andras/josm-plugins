@@ -309,12 +309,25 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
                 weight = 1;
             }
             EastNorth delta = en.subtract(dragReference);
-            EastNorth offset0 = delta.scale((1-weight)/(3*t*(1-t)*(1-t)));
-            EastNorth offset1 = delta.scale(weight/(3*t*t*(1-t)));
-            splineHit.splineNodeA.cnext = splineHit.splineNodeA.cnext.add(offset0);
-            splineHit.splineNodeB.cprev = splineHit.splineNodeB.cprev.add(offset1);
-            splineHit.splineNodeA.cprev = PointHandle.computeCounterpart(splineHit.splineNodeA.cprev, splineHit.splineNodeA.cnext, false);
-            splineHit.splineNodeB.cnext = PointHandle.computeCounterpart(splineHit.splineNodeB.cnext, splineHit.splineNodeB.cprev, false);
+            double scale0 = (1-weight)/(3*t*(1-t)*(1-t));
+            double scale1 = weight/(3*t*t*(1-t));
+            EastNorth offset0 = delta.scale(scale0);
+            EastNorth offset1 = delta.scale(scale1);
+            if (alt) {
+                splineHit.splineNodeA.cnext = splineHit.splineNodeA.cnext.scale(
+                    splineHit.splineNodeA.cnext.add(offset0).length() /
+                        splineHit.splineNodeA.cnext.length()
+                );
+                splineHit.splineNodeB.cprev = splineHit.splineNodeB.cprev.scale(
+                    splineHit.splineNodeB.cprev.add(offset1).length() /
+                        splineHit.splineNodeB.cprev.length()
+                );
+            } else {
+                splineHit.splineNodeA.cnext = splineHit.splineNodeA.cnext.add(offset0);
+                splineHit.splineNodeB.cprev = splineHit.splineNodeB.cprev.add(offset1);
+                splineHit.splineNodeA.cprev = PointHandle.computeCounterpart(splineHit.splineNodeA.cprev, splineHit.splineNodeA.cnext, false);
+                splineHit.splineNodeB.cnext = PointHandle.computeCounterpart(splineHit.splineNodeB.cnext, splineHit.splineNodeB.cprev, false);
+            }
             dragReference = en;
             MainApplication.getLayerManager().invalidateEditLayer();
             return;
