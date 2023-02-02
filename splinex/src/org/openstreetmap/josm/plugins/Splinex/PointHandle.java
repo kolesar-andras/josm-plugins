@@ -63,7 +63,7 @@ public class PointHandle {
         }
     }
 
-    public EastNorth computeCounterpart(EastNorth previous, EastNorth moved, boolean locklength) {
+    public static EastNorth computeCounterpart(EastNorth previous, EastNorth moved, boolean locklength) {
         double length;
         if (locklength) {
             length = moved.length();

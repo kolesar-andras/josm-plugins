@@ -169,9 +169,24 @@ public class Spline {
     SplineHitTest sht = new SplineHitTest();
 
     public boolean doesHit(double x, double y, MapView mv) {
+        return findHit(x, y, mv).isPresent();
+    }
+
+    static class SplineHit {
+        SNode splineNodeA;
+        SNode splineNodeB;
+        double time = Double.NaN;
+        public SplineHit(SNode splineNodeA, SNode splineNodeB) {
+            this.splineNodeA = splineNodeA;
+            this.splineNodeB = splineNodeB;
+        }
+    }
+
+    public Optional<SplineHit> findHit(double x, double y, MapView mv) {
         //long start = System.nanoTime();
         //sht.chkCnt = 0;
         sht.setCoord(x, y, NavigatableComponent.PROP_SNAP_DISTANCE.get());
+        SNode prevSNode = null;
         Point2D prev = null;
         Point2D cbPrev = null;
         for (SNode sn : nodes) {
@@ -182,12 +197,13 @@ public class Spline {
             if (cbPrev != null)
                 if (sht.checkCurve(prev.getX(), prev.getY(), cbPrev.getX(), cbPrev.getY(), ca.getX(), ca.getY(),
                         pt.getX(), pt.getY()))
-                    return true;
+                    return Optional.of(new SplineHit(prevSNode, sn));
             cbPrev = mv.getPoint2D(en.add(sn.cnext));
             prev = pt;
+            prevSNode = sn;
         }
         //chkTime = (int) ((System.nanoTime() - start) / 1000);
-        return false;
+        return Optional.empty();
     }
 
     public void finishSpline() {

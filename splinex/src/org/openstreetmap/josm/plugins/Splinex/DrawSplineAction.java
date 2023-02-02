@@ -1,6 +1,7 @@
 // License: GPL. For details, see LICENSE file.
 package org.openstreetmap.josm.plugins.Splinex;
 
+import static java.lang.Math.pow;
 import static org.openstreetmap.josm.tools.I18n.marktr;
 import static org.openstreetmap.josm.tools.I18n.tr;
 
@@ -141,12 +142,14 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
     private PointHandle ph;
     private Point helperEndpoint;
     private Point clickPos;
+    private EastNorth dragReference;
     public int index = 0;
     boolean lockCounterpart;
     boolean lockCounterpartLength;
     private MoveCommand mc;
     private boolean dragControl;
     private boolean dragSpline;
+    protected Spline.SplineHit splineHit;
 
     @Override
     public void mousePressed(MouseEvent e) {
@@ -175,6 +178,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
             return;
         }
         clickPos = e.getPoint();
+        dragReference = MainApplication.getMap().mapView.getEastNorth(clickPos.x, clickPos.y);
         if (ph != null) {
             if (ctrl) {
                 if (ph.point == SplinePoint.ENDPOINT) {
@@ -210,7 +214,11 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
             return;
         }
         if (!ctrl && spl.doesHit(e.getX(), e.getY(), MainApplication.getMap().mapView)) {
-            dragSpline = true;
+            Optional<Spline.SplineHit> optionalSplineHit = ClosestPoint.findTime(e.getX(), e.getY(), spl, MainApplication.getMap().mapView);
+            if (optionalSplineHit.isPresent()) {
+                dragSpline = true;
+                splineHit = optionalSplineHit.get();
+            }
             return;
         }
         if (spl.isClosed()) return;
@@ -268,12 +276,25 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
         if (new Node(en).isOutSideWorld())
             return;
         if (dragSpline) {
-            if (mc == null) {
-                mc = new MoveCommand(spl.getNodes(), MainApplication.getMap().mapView.getEastNorth(clickPos.x, clickPos.y), en);
-                UndoRedoHandler.getInstance().add(mc);
-                clickPos = null;
-            } else
-                mc.applyVectorTo(en);
+            double t = splineHit.time;
+            double weight;
+            if (t <= 1.0 / 6.0) {
+                weight = 0;
+            } else if (t <= 0.5) {
+                weight = pow((6 * t - 1) / 2.0, 3) / 2;
+            } else if (t <= 5.0 / 6.0) {
+                weight = (1 - pow((6 * (1 - t) - 1) / 2.0, 3)) / 2 + 0.5;
+            } else {
+                weight = 1;
+            }
+            EastNorth delta = en.subtract(dragReference);
+            EastNorth offset0 = delta.scale((1-weight)/(3*t*(1-t)*(1-t)));
+            EastNorth offset1 = delta.scale(weight/(3*t*t*(1-t)));
+            splineHit.splineNodeA.cnext = splineHit.splineNodeA.cnext.add(offset0);
+            splineHit.splineNodeB.cprev = splineHit.splineNodeB.cprev.add(offset1);
+            splineHit.splineNodeA.cprev = PointHandle.computeCounterpart(splineHit.splineNodeA.cprev, splineHit.splineNodeA.cnext, false);
+            splineHit.splineNodeB.cnext = PointHandle.computeCounterpart(splineHit.splineNodeB.cnext, splineHit.splineNodeB.cprev, false);
+            dragReference = en;
             MainApplication.getLayerManager().invalidateEditLayer();
             return;
         }
