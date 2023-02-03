@@ -34,10 +34,13 @@ public class SplineHitTest {
         //chkCnt++;
         double dx = x4 - x1;
         double dy = y4 - y1;
-        double dl = (x - x1) * dx + (y - y1) * dy;
-        double lenSq = (dx * dx + dy * dy);
 
+        double lenSq = (dx * dx + dy * dy);
+        if (lenSq == 0.0 || Double.isNaN(lenSq)) return false;
+
+        double dl = (x - x1) * dx + (y - y1) * dy;
         double dp = (x - x1) * dy - (y - y1) * dx;
+
         boolean forcesplit = false;
         if (dl < 0) {
             double dl2 = ((x2 - x1) * dx + (y2 - y1) * dy) * 0.75;
