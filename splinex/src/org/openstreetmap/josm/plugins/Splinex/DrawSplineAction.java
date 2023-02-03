@@ -576,8 +576,8 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
         Way way = ds.getLastSelectedWay();
         if (way == null) return;
         if (way.getNodesCount() < 3) return;
-        Spline spline = SplineImporter.fromNodes(way.getNodes(), 0.5, way.isClosed());
-        UndoRedoHandler.getInstance().add(new CreateSplineCommand(splCached, spline.nodes));
+        Spline spline = SplineImporterSchneider.fromNodes(way.getNodes(), 0.5, way.isClosed());
+        UndoRedoHandler.getInstance().add(new CreateSplineCommand(splCached, spline.nodes, false));
     }
 
 }
