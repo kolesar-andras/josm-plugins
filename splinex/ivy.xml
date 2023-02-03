@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- License: GPL. For details, see LICENSE file. -->
+<ivy-module version="2.0" xmlns:maven="http://ant.apache.org/ivy/maven">
+    <info organisation="org.openstreetmap" module="josm"/>
+    <configurations>
+        <!--  configurations that should be used when specifying dependencies -->
+        <conf name="default" description="All libs that JOSM uses and are available for plugins"/>
+    </configurations>
+    <dependencies>
+        <dependency conf="default" org="org.jhotdraw" name="jhotdraw" rev="7.4.1"/>
+    </dependencies>
+</ivy-module>
