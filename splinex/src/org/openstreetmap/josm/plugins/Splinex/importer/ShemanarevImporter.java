@@ -1,13 +1,14 @@
-package org.openstreetmap.josm.plugins.Splinex;
+package org.openstreetmap.josm.plugins.Splinex.importer;
 
 import org.openstreetmap.josm.data.coor.EastNorth;
 import org.openstreetmap.josm.data.osm.Node;
+import org.openstreetmap.josm.plugins.Splinex.Spline;
 
 import java.util.List;
 
 import static java.lang.Math.sqrt;
 
-public class SplineImporter {
+public class ShemanarevImporter {
     public static Spline fromNodes(List<Node> nodes, double smooth, boolean closed) {
         Spline spline = new Spline();
         int size = nodes.size();

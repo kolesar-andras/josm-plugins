@@ -1,16 +1,16 @@
-package org.openstreetmap.josm.plugins.Splinex;
+package org.openstreetmap.josm.plugins.Splinex.importer;
 
 import org.jhotdraw.geom.Bezier;
 import org.jhotdraw.geom.BezierPath;
 import org.openstreetmap.josm.data.coor.EastNorth;
 import org.openstreetmap.josm.data.osm.Node;
+import org.openstreetmap.josm.plugins.Splinex.Spline;
 
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SplineImporterSchneider {
-
+public class SchneiderImporter {
     public static Spline fromNodes(List<Node> nodes, double smooth, boolean closed) {
         Spline spline = new Spline();
         List<Point2D.Double> points = new ArrayList<>();
