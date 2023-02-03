@@ -7,7 +7,7 @@ import java.util.Optional;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static org.openstreetmap.josm.plugins.Splinex.CubicBezier.cubicBezier;
+import static org.openstreetmap.josm.plugins.Splinex.exporter.CubicBezier.cubicBezier;
 
 public class ClosestPoint {
 

@@ -28,6 +28,7 @@ import org.openstreetmap.josm.gui.MapView;
 import org.openstreetmap.josm.gui.NavigatableComponent;
 import org.openstreetmap.josm.plugins.Splinex.command.FinishSplineCommand;
 import org.openstreetmap.josm.plugins.Splinex.command.UndeleteNodeCommand;
+import org.openstreetmap.josm.plugins.Splinex.exporter.CubicBezier;
 
 public class Spline {
     public static IntegerProperty PROP_SPLINEPOINTS = new IntegerProperty("edit.spline.num_points", 10);

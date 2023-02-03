@@ -1,4 +1,4 @@
-package org.openstreetmap.josm.plugins.Splinex;
+package org.openstreetmap.josm.plugins.Splinex.exporter;
 
 import org.openstreetmap.josm.data.coor.EastNorth;
 
