@@ -15,7 +15,6 @@ import javax.swing.AbstractAction;
 import org.openstreetmap.josm.data.osm.*;
 import org.openstreetmap.josm.actions.mapmode.MapMode;
 import org.openstreetmap.josm.command.Command;
-import org.openstreetmap.josm.command.MoveCommand;
 import org.openstreetmap.josm.data.Bounds;
 import org.openstreetmap.josm.data.UndoRedoHandler;
 import org.openstreetmap.josm.data.coor.EastNorth;
@@ -123,11 +122,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
     protected PointHandle pointHandle;
     protected Point helperEndpoint;
     protected Point clickPos;
-    protected boolean lockCounterpart;
-    protected boolean lockCounterpartLength;
-    protected MoveCommand moveCommand;
-    protected boolean dragControl;
-    protected SplineHit splineHit;
+    protected DragCommand commandOnDrag;
 
     @Override
     public void mousePressed(MouseEvent e) {
@@ -141,7 +136,6 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
         Spline spline = layerListener.getSpline();
         if (spline == null) return;
         helperEndpoint = null;
-        dragControl = false;
         mouseDownTime = System.currentTimeMillis();
         pointHandle = spline.getNearestPointHandle(mapFrame.mapView, e.getPoint());
         clickPos = e.getPoint();
@@ -158,7 +152,6 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
 
     @Override
     public void mouseReleased(MouseEvent e) {
-        moveCommand = null;
         mouseDownTime = null;
         clickPos = null;
         mouseMoved(e);
@@ -185,12 +178,15 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
         EastNorth en = mapFrame.mapView.getEastNorth(e.getX(), e.getY());
         if (new Node(en).isOutSideWorld())
             return;
+        if (commandOnDrag != null) {
+            UndoRedoHandler.getInstance().add((Command) commandOnDrag);
+            commandOnDrag = null;
+        }
         Command cmd = UndoRedoHandler.getInstance().getLastCommand();
-        if (cmd instanceof DragSplineCommand) {
-            DrawSplineHelper.dragSpline(splineHit, ((DragSplineCommand) cmd).delta(en), alt);
+        if (cmd instanceof DragCommand) {
+            DragCommand dragCommand = (DragCommand) cmd;
+            dragCommand.dragTo(en, e);
             MainApplication.getLayerManager().invalidateEditLayer();
-        } else if (pointHandle != null) {
-            handlePointHandleDragged(en);
         }
     }
 
@@ -263,50 +259,24 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
     }
 
     protected void handleClickOnPointHandle() {
-        if (ctrl) {
-            if (pointHandle.role == PointHandle.Role.NODE) {
-                pointHandle = pointHandle.otherPoint(PointHandle.Role.CONTROL_NEXT);
-                lockCounterpart = true;
-                lockCounterpartLength = true;
-            } else
-                lockCounterpart = false;
-        } else if (alt) {
+        if (alt) {
             DrawSplineHelper.deleteSplineNode(pointHandle);
         } else if (pointHandle.role != PointHandle.Role.NODE) {
-            lockCounterpart =
-                // TODO handle turnover at north
-                Math.abs(pointHandle.sn.cprev.heading(EastNorth.ZERO) - EastNorth.ZERO.heading(pointHandle.sn.cnext)) < 5/180.0*Math.PI;
-            lockCounterpartLength =
-                Math.min(pointHandle.sn.cprev.length(), pointHandle.sn.cnext.length()) /
-                    Math.max(pointHandle.sn.cprev.length(), pointHandle.sn.cnext.length()) > 0.95;
-        }
-        if (pointHandle.role == PointHandle.Role.NODE && UndoRedoHandler.getInstance().hasUndoCommands()) {
-            Command cmd = UndoRedoHandler.getInstance().getLastCommand();
-            if (cmd instanceof MoveCommand) {
-                moveCommand = (MoveCommand) cmd;
-                Collection<Node> pp = moveCommand.getParticipatingPrimitives();
-                if (pp.size() != 1 || !pp.contains(pointHandle.sn.node))
-                    moveCommand = null;
-                else
-                    moveCommand.changeStartPoint(pointHandle.sn.node.getEastNorth());
-            }
-        }
-        if (pointHandle.role != PointHandle.Role.NODE && UndoRedoHandler.getInstance().hasUndoCommands()) {
-            Command cmd = UndoRedoHandler.getInstance().getLastCommand();
-            if (!(cmd instanceof EditSplineCommand && ((EditSplineCommand) cmd).sNodeIs(pointHandle.sn)))
-                dragControl = true;
+            commandOnDrag = new MoveSplinePointHandleCommand(pointHandle);
+        } else {
+            commandOnDrag = new MoveSplineNodeCommand(pointHandle.sn.node);
         }
     }
 
     protected void handleClickOnSpline(Spline spline, MouseEvent e) {
         Optional<SplineHit> optionalSplineHit = ClosestPoint.findTime(e.getX(), e.getY(), spline, mapFrame.mapView);
         if (optionalSplineHit.isPresent()) {
-            splineHit = optionalSplineHit.get();
+            SplineHit splineHit = optionalSplineHit.get();
             if (ctrl) {
                 DrawSplineHelper.insertSplineNode(spline, splineHit);
             } else {
                 EastNorth dragReference = mapFrame.mapView.getEastNorth(clickPos.x, clickPos.y);
-                DragSplineCommand.create(splineHit, dragReference);
+                commandOnDrag = DragSplineCommand.create(splineHit, dragReference);
             }
         }
     }
@@ -335,27 +305,6 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
         int idx = direction == -1 ? 0 : spline.nodeCount();
         UndoRedoHandler.getInstance().add(new AddSplineNodeCommand(spline, new SplineNode(node), existing, idx));
         pointHandle = new PointHandle(spline, idx, direction == -1 ? PointHandle.Role.CONTROL_PREV : PointHandle.Role.CONTROL_NEXT);
-        lockCounterpart = true;
-        MainApplication.getLayerManager().invalidateEditLayer();
-    }
-
-    protected void handlePointHandleDragged(EastNorth en) {
-        if (pointHandle.role == PointHandle.Role.NODE) {
-            if (moveCommand == null) {
-                moveCommand = new MoveCommand(pointHandle.sn.node, pointHandle.sn.node.getEastNorth(), en);
-                UndoRedoHandler.getInstance().add(moveCommand);
-            } else
-                moveCommand.applyVectorTo(en);
-        } else {
-            if (dragControl) {
-                UndoRedoHandler.getInstance().add(new EditSplineCommand(pointHandle.sn));
-                dragControl = false;
-            }
-            pointHandle.movePoint(en);
-            if (lockCounterpart) {
-                pointHandle.moveCounterpart(lockCounterpartLength);
-            }
-        }
         MainApplication.getLayerManager().invalidateEditLayer();
     }
 
