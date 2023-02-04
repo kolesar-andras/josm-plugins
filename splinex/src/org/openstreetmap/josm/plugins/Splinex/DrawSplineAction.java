@@ -10,7 +10,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.util.*;
-import java.util.List;
 
 import javax.swing.AbstractAction;
 
@@ -33,7 +32,6 @@ import org.openstreetmap.josm.gui.util.KeyPressReleaseListener;
 import org.openstreetmap.josm.gui.util.ModifierExListener;
 import org.openstreetmap.josm.plugins.Splinex.Spline.SplinePoint;
 import org.openstreetmap.josm.plugins.Splinex.algorithm.ClosestPoint;
-import org.openstreetmap.josm.plugins.Splinex.algorithm.Split;
 import org.openstreetmap.josm.plugins.Splinex.command.*;
 import org.openstreetmap.josm.spi.preferences.Config;
 import org.openstreetmap.josm.tools.ImageProvider;
@@ -202,20 +200,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
             if (optionalSplineHit.isPresent()) {
                 splineHit = optionalSplineHit.get();
                 if (ctrl) {
-                    List<Command> cmds = new LinkedList<>();
-                    Split.Result result = Split.split(splineHit);
-                    Node node = new Node(result.a.pointB);
-                    SplineNode splineNode = new SplineNode(
-                        node,
-                        result.a.ctrlB.subtract(result.a.pointB),
-                        result.b.ctrlA.subtract(result.b.pointA)
-                    );
-                    cmds.add(new AddSplineNodeCommand(spline, splineNode, false, splineHit.index));
-                    cmds.add(new EditSplineCommand(splineHit.splineNodeA));
-                    cmds.add(new EditSplineCommand(splineHit.splineNodeB));
-                    UndoRedoHandler.getInstance().add(new InsertSplineNodeCommand(cmds));
-                    splineHit.splineNodeA.cnext = result.a.ctrlA.subtract(result.a.pointA);
-                    splineHit.splineNodeB.cprev = result.b.ctrlB.subtract(result.b.pointB);
+                    DrawSplineHelper.insertSplineNode(spline, splineHit);
                 } else {
                     DragSplineCommand.create(splineHit);
                     dragSpline = true;
