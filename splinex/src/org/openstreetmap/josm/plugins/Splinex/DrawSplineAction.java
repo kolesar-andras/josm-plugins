@@ -22,7 +22,6 @@ import org.openstreetmap.josm.data.Bounds;
 import org.openstreetmap.josm.data.UndoRedoHandler;
 import org.openstreetmap.josm.data.coor.EastNorth;
 import org.openstreetmap.josm.data.osm.Node;
-import org.openstreetmap.josm.data.osm.event.*;
 import org.openstreetmap.josm.data.osm.visitor.paint.MapPaintSettings;
 import org.openstreetmap.josm.data.preferences.NamedColorProperty;
 import org.openstreetmap.josm.gui.MainApplication;
@@ -49,7 +48,7 @@ import org.openstreetmap.josm.tools.Shortcut;
 
 @SuppressWarnings("serial")
 public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPressReleaseListener, ModifierExListener,
-        LayerChangeListener, ActiveLayerChangeListener, DataSetListener {
+        LayerChangeListener, ActiveLayerChangeListener {
     private final Cursor cursorJoinNode;
     private final Cursor cursorJoinWay;
 
@@ -60,6 +59,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
 
     private final MapFrame mapFrame;
     private final NodeHighlight nodeHighlight = new NodeHighlight();
+    private final DrawSplineDataSetListener drawSplineDataSetListener = new DrawSplineDataSetListener();
 
     boolean drawHelperLine;
 
@@ -97,7 +97,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
         mapFrame.mapView.addMouseMotionListener(this);
         mapFrame.keyDetector.addModifierExListener(this);
         mapFrame.keyDetector.addKeyListener(this);
-        getLayerManager().getEditLayer().getDataSet().addDataSetListener(this);
+        drawSplineDataSetListener.register();
         DrawSplineHelper.createSplineFromSelection(splCached);
     }
 
@@ -123,6 +123,8 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
         mapFrame.keyDetector.removeModifierExListener(this);
         mapFrame.keyDetector.removeKeyListener(this);
         nodeHighlight.unset();
+        drawSplineDataSetListener.unregister();
+
         MainApplication.getLayerManager().invalidateEditLayer();
     }
 
@@ -426,40 +428,6 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
     @Override
     protected void updateEnabledState() {
         setEnabled(getLayerManager().getEditLayer() != null);
-    }
-
-    @Override
-    public void primitivesAdded(PrimitivesAddedEvent event) {
-        MainApplication.getLayerManager().invalidateEditLayer();
-    }
-
-    @Override
-    public void primitivesRemoved(PrimitivesRemovedEvent event) {
-        MainApplication.getLayerManager().invalidateEditLayer();
-    }
-
-    @Override
-    public void tagsChanged(TagsChangedEvent event) {
-    }
-
-    @Override
-    public void nodeMoved(NodeMovedEvent event) {
-    }
-
-    @Override
-    public void wayNodesChanged(WayNodesChangedEvent event) {
-    }
-
-    @Override
-    public void relationMembersChanged(RelationMembersChangedEvent event) {
-    }
-
-    @Override
-    public void otherDatasetChange(AbstractDatasetChangedEvent event) {
-    }
-
-    @Override
-    public void dataChanged(DataChangedEvent event) {
     }
 
     public static class BackSpaceAction extends AbstractAction {
