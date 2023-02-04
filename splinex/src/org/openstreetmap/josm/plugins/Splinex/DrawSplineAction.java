@@ -41,20 +41,20 @@ import org.openstreetmap.josm.tools.Shortcut;
 
 @SuppressWarnings("serial")
 public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPressReleaseListener, ModifierExListener {
-    private final Cursor cursorJoinNode;
-    private final Cursor cursorJoinWay;
+    private final Cursor cursorJoinNode = ImageProvider.getCursor("crosshair", "joinnode");
+    private final Cursor cursorJoinWay = ImageProvider.getCursor("crosshair", "joinway");
 
-    private Color rubberLineColor;
-
-    private final Shortcut backspaceShortcut;
-    private final BackSpaceAction backspaceAction;
+    private final Shortcut backspaceShortcut = Shortcut.registerShortcut(
+        "mapmode:backspace",
+        tr("Backspace in Add mode"),
+        KeyEvent.VK_BACK_SPACE, Shortcut.DIRECT
+    );
+    private final BackSpaceAction backspaceAction = new BackSpaceAction();
 
     private final MapFrame mapFrame;
     private final NodeHighlight nodeHighlight = new NodeHighlight();
     private final DrawSplineDataSetListener drawSplineDataSetListener = new DrawSplineDataSetListener();
     private final DrawSplineLayerManager drawSplineLayerManager = new DrawSplineLayerManager();
-
-    boolean drawHelperLine;
 
     public DrawSplineAction(MapFrame mapFrame) {
         super(tr("Spline drawing"), // name
@@ -65,13 +65,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
                         KeyEvent.VK_L, Shortcut.DIRECT),
                 DrawSplineHelper.getCursor());
 
-        backspaceShortcut = Shortcut.registerShortcut("mapmode:backspace", tr("Backspace in Add mode"),
-                KeyEvent.VK_BACK_SPACE, Shortcut.DIRECT);
-        backspaceAction = new BackSpaceAction();
-        cursorJoinNode = ImageProvider.getCursor("crosshair", "joinnode");
-        cursorJoinWay = ImageProvider.getCursor("crosshair", "joinway");
         drawSplineLayerManager.register();
-
         this.mapFrame = mapFrame;
         this.mapFrame.mapView.addTemporaryLayer(this);
         readPreferences();
@@ -93,7 +87,10 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
         DrawSplineHelper.createSplineFromSelection(drawSplineLayerManager.getSpline());
     }
 
-    int initialMoveDelay, initialMoveThreshold;
+    protected Color rubberLineColor;
+    protected int initialMoveDelay;
+    protected int initialMoveThreshold;
+    protected boolean drawHelperLine;
 
     @Override
     protected void readPreferences() {
@@ -124,16 +121,16 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
         updateKeyModifiersEx(modifiers);
     }
 
-    private Long mouseDownTime;
-    private PointHandle ph;
-    private Point helperEndpoint;
-    private Point clickPos;
-    private EastNorth dragReference;
-    boolean lockCounterpart;
-    boolean lockCounterpartLength;
-    private MoveCommand mc;
-    private boolean dragControl;
-    private boolean dragSpline;
+    protected Long mouseDownTime;
+    protected PointHandle ph;
+    protected Point helperEndpoint;
+    protected Point clickPos;
+    protected EastNorth dragReference;
+    protected boolean lockCounterpart;
+    protected boolean lockCounterpartLength;
+    protected MoveCommand mc;
+    protected boolean dragControl;
+    protected boolean dragSpline;
     protected SplineHit splineHit;
 
     @Override
@@ -337,7 +334,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
         MainApplication.getLayerManager().invalidateEditLayer();
     }
 
-    short direction;
+    protected short direction;
 
     @Override
     public void mouseMoved(MouseEvent e) {
