@@ -1,9 +1,9 @@
 // License: GPL. For details, see LICENSE file.
-package org.openstreetmap.josm.plugins.Splinex;
+package org.openstreetmap.josm.plugins.Splinex.algorithm;
 
 import org.openstreetmap.josm.tools.Logging;
 
-public class SplineHitTest {
+public class SplineHitCheck {
     double x, y, dist, distSq;
     //public int chkCnt;
 

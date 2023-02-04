@@ -26,6 +26,7 @@ import org.openstreetmap.josm.data.projection.ProjectionRegistry;
 import org.openstreetmap.josm.gui.MainApplication;
 import org.openstreetmap.josm.gui.MapView;
 import org.openstreetmap.josm.gui.NavigatableComponent;
+import org.openstreetmap.josm.plugins.Splinex.algorithm.SplineHitCheck;
 import org.openstreetmap.josm.plugins.Splinex.command.FinishSplineCommand;
 import org.openstreetmap.josm.plugins.Splinex.command.UndeleteNodeCommand;
 import org.openstreetmap.josm.plugins.Splinex.exporter.CubicBezier;
@@ -156,7 +157,7 @@ public class Spline {
         return bestPH;
     }
 
-    SplineHitTest sht = new SplineHitTest();
+    SplineHitCheck splineHitCheck = new SplineHitCheck();
 
     public boolean doesHit(double x, double y, MapView mv) {
         return findHit(x, y, mv).isPresent();
@@ -165,7 +166,7 @@ public class Spline {
     public Optional<SplineHit> findHit(double x, double y, MapView mv) {
         //long start = System.nanoTime();
         //sht.chkCnt = 0;
-        sht.setCoord(x, y, NavigatableComponent.PROP_SNAP_DISTANCE.get());
+        splineHitCheck.setCoord(x, y, NavigatableComponent.PROP_SNAP_DISTANCE.get());
         SplineNode prevSplineNode = null;
         Point2D prev = null;
         Point2D cbPrev = null;
@@ -176,7 +177,7 @@ public class Spline {
             Point2D ca = mv.getPoint2D(en.add(sn.cprev));
 
             if (cbPrev != null)
-                if (sht.checkCurve(prev.getX(), prev.getY(), cbPrev.getX(), cbPrev.getY(), ca.getX(), ca.getY(),
+                if (splineHitCheck.checkCurve(prev.getX(), prev.getY(), cbPrev.getX(), cbPrev.getY(), ca.getX(), ca.getY(),
                         pt.getX(), pt.getY()))
                     return Optional.of(new SplineHit(prevSplineNode, sn, index));
             cbPrev = mv.getPoint2D(en.add(sn.cnext));
