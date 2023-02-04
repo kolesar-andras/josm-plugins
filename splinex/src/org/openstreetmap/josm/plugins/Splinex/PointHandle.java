@@ -8,18 +8,18 @@ public class PointHandle {
     private final Spline spline;
     public final int idx;
     public final SplineNode sn;
-    public final Spline.SplinePoint point;
+    public final Role role;
 
-    public PointHandle(Spline spline, int idx, Spline.SplinePoint point) {
+    public PointHandle(Spline spline, int idx, Role role) {
         this.spline = spline;
-        if (point == null)
+        if (role == null)
             throw new IllegalArgumentException("Invalid SegmentPoint passed for PointHandle contructor");
         this.idx = idx;
         this.sn = spline.nodes.get(idx);
-        this.point = point;
+        this.role = role;
     }
 
-    public PointHandle otherPoint(Spline.SplinePoint point) {
+    public PointHandle otherPoint(Role point) {
         return new PointHandle(spline, idx, point);
     }
 
@@ -29,7 +29,7 @@ public class PointHandle {
 
     public EastNorth getPoint() {
         EastNorth en = sn.node.getEastNorth();
-        switch (point) {
+        switch (role) {
             case NODE:
                 return en;
             case CONTROL_PREV:
@@ -41,7 +41,7 @@ public class PointHandle {
     }
 
     public void movePoint(EastNorth en) {
-        switch (point) {
+        switch (role) {
             case NODE:
                 sn.node.setEastNorth(en);
                 return;
@@ -56,9 +56,9 @@ public class PointHandle {
     }
 
     public void moveCounterpart(boolean lockLength) {
-        if (point == Spline.SplinePoint.CONTROL_NEXT) {
+        if (role == Role.CONTROL_NEXT) {
             sn.cprev = computeCounterpart(sn.cprev, sn.cnext, lockLength);
-        } else if (point == Spline.SplinePoint.CONTROL_PREV) {
+        } else if (role == Role.CONTROL_PREV) {
             sn.cnext = computeCounterpart(sn.cnext, sn.cprev, lockLength);
         }
     }
@@ -79,11 +79,15 @@ public class PointHandle {
         if (!(other instanceof PointHandle))
             return false;
         PointHandle o = (PointHandle) other;
-        return this.sn == o.sn && this.point == o.point;
+        return this.sn == o.sn && this.role == o.role;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(sn, point);
+        return Objects.hash(sn, role);
+    }
+
+    public enum Role {
+        NODE, CONTROL_PREV, CONTROL_NEXT
     }
 }

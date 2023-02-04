@@ -136,16 +136,12 @@ public class Spline {
         }
     }
 
-    public enum SplinePoint {
-        NODE, CONTROL_PREV, CONTROL_NEXT
-    }
-
     public PointHandle getNearestPoint(MapView mv, Point2D point) {
         PointHandle bestPH = null;
         double bestDistSq = NavigatableComponent.PROP_SNAP_DISTANCE.get();
         bestDistSq = bestDistSq * bestDistSq;
         for (int i = 0; i < nodes.size(); i++) {
-            for (SplinePoint sp : SplinePoint.values()) {
+            for (PointHandle.Role sp : PointHandle.Role.values()) {
                 PointHandle ph = new PointHandle(this, i, sp);
                 double distSq = point.distanceSq(mv.getPoint2D(ph.getPoint()));
                 if (distSq < bestDistSq) {

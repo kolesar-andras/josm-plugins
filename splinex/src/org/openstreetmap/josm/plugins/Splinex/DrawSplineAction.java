@@ -29,7 +29,6 @@ import org.openstreetmap.josm.gui.layer.Layer;
 import org.openstreetmap.josm.gui.layer.MapViewPaintable;
 import org.openstreetmap.josm.gui.util.KeyPressReleaseListener;
 import org.openstreetmap.josm.gui.util.ModifierExListener;
-import org.openstreetmap.josm.plugins.Splinex.Spline.SplinePoint;
 import org.openstreetmap.josm.plugins.Splinex.algorithm.ClosestPoint;
 import org.openstreetmap.josm.plugins.Splinex.command.*;
 import org.openstreetmap.josm.spi.preferences.Config;
@@ -226,7 +225,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
         else {
             helperEndpoint = null;
             mapFrame.mapView.setNewCursor(cursorJoinWay, this);
-            if (pointHandle.point == SplinePoint.NODE)
+            if (pointHandle.role == PointHandle.Role.NODE)
                 redraw = nodeHighlight.set(pointHandle.sn.node);
             else
                 redraw = nodeHighlight.unset();
@@ -252,7 +251,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
     }
 
     protected void handleDoubleClick(Spline spline) {
-        if (!spline.isClosed() && spline.nodeCount() > 1 && pointHandle != null && pointHandle.point == Spline.SplinePoint.NODE
+        if (!spline.isClosed() && spline.nodeCount() > 1 && pointHandle != null && pointHandle.role == PointHandle.Role.NODE
             && ((pointHandle.idx == 0 && direction == 1) || (pointHandle.idx == spline.nodeCount() - 1 && direction == -1))) {
             UndoRedoHandler.getInstance().add(new CloseSplineCommand(spline));
         } else {
@@ -263,15 +262,15 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
 
     protected void handleClickOnPointHandle() {
         if (ctrl) {
-            if (pointHandle.point == Spline.SplinePoint.NODE) {
-                pointHandle = pointHandle.otherPoint(Spline.SplinePoint.CONTROL_NEXT);
+            if (pointHandle.role == PointHandle.Role.NODE) {
+                pointHandle = pointHandle.otherPoint(PointHandle.Role.CONTROL_NEXT);
                 lockCounterpart = true;
                 lockCounterpartLength = true;
             } else
                 lockCounterpart = false;
         } else if (alt) {
             DrawSplineHelper.deleteSplineNode(pointHandle);
-        } else if (pointHandle.point != Spline.SplinePoint.NODE) {
+        } else if (pointHandle.role != PointHandle.Role.NODE) {
             lockCounterpart =
                 // TODO handle turnover at north
                 Math.abs(pointHandle.sn.cprev.heading(EastNorth.ZERO) - EastNorth.ZERO.heading(pointHandle.sn.cnext)) < 5/180.0*Math.PI;
@@ -279,7 +278,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
                 Math.min(pointHandle.sn.cprev.length(), pointHandle.sn.cnext.length()) /
                     Math.max(pointHandle.sn.cprev.length(), pointHandle.sn.cnext.length()) > 0.95;
         }
-        if (pointHandle.point == Spline.SplinePoint.NODE && UndoRedoHandler.getInstance().hasUndoCommands()) {
+        if (pointHandle.role == PointHandle.Role.NODE && UndoRedoHandler.getInstance().hasUndoCommands()) {
             Command cmd = UndoRedoHandler.getInstance().getLastCommand();
             if (cmd instanceof MoveCommand) {
                 moveCommand = (MoveCommand) cmd;
@@ -290,7 +289,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
                     moveCommand.changeStartPoint(pointHandle.sn.node.getEastNorth());
             }
         }
-        if (pointHandle.point != Spline.SplinePoint.NODE && UndoRedoHandler.getInstance().hasUndoCommands()) {
+        if (pointHandle.role != PointHandle.Role.NODE && UndoRedoHandler.getInstance().hasUndoCommands()) {
             Command cmd = UndoRedoHandler.getInstance().getLastCommand();
             if (!(cmd instanceof EditSplineCommand && ((EditSplineCommand) cmd).sNodeIs(pointHandle.sn)))
                 dragControl = true;
@@ -333,13 +332,13 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
         }
         int idx = direction == -1 ? 0 : spline.nodeCount();
         UndoRedoHandler.getInstance().add(new AddSplineNodeCommand(spline, new SplineNode(node), existing, idx));
-        pointHandle = new PointHandle(spline, idx, direction == -1 ? SplinePoint.CONTROL_PREV : SplinePoint.CONTROL_NEXT);
+        pointHandle = new PointHandle(spline, idx, direction == -1 ? PointHandle.Role.CONTROL_PREV : PointHandle.Role.CONTROL_NEXT);
         lockCounterpart = true;
         MainApplication.getLayerManager().invalidateEditLayer();
     }
 
     protected void handlePointHandleDragged(EastNorth en) {
-        if (pointHandle.point == SplinePoint.NODE) {
+        if (pointHandle.role == PointHandle.Role.NODE) {
             if (moveCommand == null) {
                 moveCommand = new MoveCommand(pointHandle.sn.node, pointHandle.sn.node.getEastNorth(), en);
                 UndoRedoHandler.getInstance().add(moveCommand);
@@ -370,7 +369,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
     }
 
     protected void paintPointHandle(Graphics2D graphics2D, MapView mapView) {
-        if (pointHandle != null && (pointHandle.point != SplinePoint.NODE || nodeHighlight.isNodeDeleted())) {
+        if (pointHandle != null && (pointHandle.role != PointHandle.Role.NODE || nodeHighlight.isNodeDeleted())) {
             graphics2D.setColor(MapPaintSettings.INSTANCE.getSelectedColor());
             Point point = mapView.getPoint(pointHandle.getPoint());
             graphics2D.fillRect(point.x - 1, point.y - 1, 3, 3);
