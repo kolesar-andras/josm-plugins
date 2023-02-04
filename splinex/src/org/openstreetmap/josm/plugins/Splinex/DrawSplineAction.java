@@ -115,7 +115,6 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
         mapFrame.keyDetector.removeModifierExListener(this);
         mapFrame.keyDetector.removeKeyListener(this);
         nodeHighlight.unset();
-        drawSplineDataSetListener.unregister();
 
         MainApplication.getLayerManager().invalidateEditLayer();
     }

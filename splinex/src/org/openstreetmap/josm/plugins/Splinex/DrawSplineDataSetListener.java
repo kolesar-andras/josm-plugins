@@ -10,10 +10,6 @@ public class DrawSplineDataSetListener implements DataSetListener {
         getLayerManager().getEditLayer().getDataSet().addDataSetListener(this);
     }
 
-    public void unregister() {
-        getLayerManager().getEditLayer().getDataSet().removeDataSetListener(this);
-    }
-
     @Override
     public void primitivesAdded(PrimitivesAddedEvent event) {
         getLayerManager().invalidateEditLayer();
