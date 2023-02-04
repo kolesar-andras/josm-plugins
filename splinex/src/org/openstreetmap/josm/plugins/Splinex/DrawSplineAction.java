@@ -21,9 +21,7 @@ import org.openstreetmap.josm.command.MoveCommand;
 import org.openstreetmap.josm.data.Bounds;
 import org.openstreetmap.josm.data.UndoRedoHandler;
 import org.openstreetmap.josm.data.coor.EastNorth;
-import org.openstreetmap.josm.data.osm.DataSet;
 import org.openstreetmap.josm.data.osm.Node;
-import org.openstreetmap.josm.data.osm.Way;
 import org.openstreetmap.josm.data.osm.event.*;
 import org.openstreetmap.josm.data.osm.visitor.paint.MapPaintSettings;
 import org.openstreetmap.josm.data.preferences.NamedColorProperty;
@@ -45,10 +43,8 @@ import org.openstreetmap.josm.plugins.Splinex.Spline.SplinePoint;
 import org.openstreetmap.josm.plugins.Splinex.algorithm.ClosestPoint;
 import org.openstreetmap.josm.plugins.Splinex.algorithm.Split;
 import org.openstreetmap.josm.plugins.Splinex.command.*;
-import org.openstreetmap.josm.plugins.Splinex.importer.SchneiderImporter;
 import org.openstreetmap.josm.spi.preferences.Config;
 import org.openstreetmap.josm.tools.ImageProvider;
-import org.openstreetmap.josm.tools.Logging;
 import org.openstreetmap.josm.tools.Shortcut;
 
 @SuppressWarnings("serial")
@@ -73,7 +69,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
                 Shortcut.registerShortcut("mapmode:spline",
                         tr("Mode: {0}", tr("Spline drawing")),
                         KeyEvent.VK_L, Shortcut.DIRECT),
-                getCursor());
+                DrawSplineHelper.getCursor());
 
         backspaceShortcut = Shortcut.registerShortcut("mapmode:backspace", tr("Backspace in Add mode"),
                 KeyEvent.VK_BACK_SPACE, Shortcut.DIRECT);
@@ -86,15 +82,6 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
         this.mapFrame = mapFrame;
         this.mapFrame.mapView.addTemporaryLayer(this);
         readPreferences();
-    }
-
-    private static Cursor getCursor() {
-        try {
-            return ImageProvider.getCursor("crosshair", "spline");
-        } catch (Exception e) {
-            Logging.error(e);
-        }
-        return Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR);
     }
 
     @Override
@@ -110,7 +97,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
         mapFrame.keyDetector.addModifierExListener(this);
         mapFrame.keyDetector.addKeyListener(this);
         getLayerManager().getEditLayer().getDataSet().addDataSetListener(this);
-        createSplineFromSelection();
+        DrawSplineHelper.createSplineFromSelection(splCached);
     }
 
     int initialMoveDelay, initialMoveThreshold;
@@ -148,7 +135,6 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
     private Point helperEndpoint;
     private Point clickPos;
     private EastNorth dragReference;
-    public int index = 0;
     boolean lockCounterpart;
     boolean lockCounterpartLength;
     private MoveCommand mc;
@@ -193,7 +179,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
                 } else
                     lockCounterpart = false;
             } else if (alt) {
-                deleteSplineNode();
+                DrawSplineHelper.deleteSplineNode(ph);
             } else if (ph.point != SplinePoint.ENDPOINT) {
                 lockCounterpart =
                         // TODO handle turnover at north
@@ -551,7 +537,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
     @Override
     public void doKeyPressed(KeyEvent e) {
         if (e.getKeyCode() == KeyEvent.VK_DELETE && ph != null) {
-            deleteSplineNode();
+            DrawSplineHelper.deleteSplineNode(ph);
             e.consume();
         }
         if (e.getKeyCode() == KeyEvent.VK_ESCAPE && direction != 0) {
@@ -564,24 +550,6 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
     @Override
     public void doKeyReleased(KeyEvent e) {
         // Do nothing
-    }
-
-    protected void deleteSplineNode() {
-        Spline spl = ph.getSpline();
-        if (spl.isClosed() && spl.nodeCount() <= 3)
-            return; // Don't allow to delete node when spline is closed and points are few
-        UndoRedoHandler.getInstance().add(new DeleteSplineNodeCommand(spl, ph.idx));
-        MainApplication.getLayerManager().invalidateEditLayer();
-    }
-
-    protected void createSplineFromSelection() {
-        DataSet ds = getLayerManager().getEditDataSet();
-        if (ds == null) return;
-        Way way = ds.getLastSelectedWay();
-        if (way == null) return;
-        if (way.getNodesCount() < 3) return;
-        Spline spline = SchneiderImporter.fromNodes(way.getNodes(), 0.5, way.isClosed());
-        UndoRedoHandler.getInstance().add(new CreateSplineCommand(splCached, spline.nodes, false));
     }
 
 }
