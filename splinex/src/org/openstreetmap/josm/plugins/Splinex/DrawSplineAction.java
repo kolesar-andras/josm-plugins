@@ -28,14 +28,7 @@ import org.openstreetmap.josm.gui.MainApplication;
 import org.openstreetmap.josm.gui.MapFrame;
 import org.openstreetmap.josm.gui.MapView;
 import org.openstreetmap.josm.gui.layer.Layer;
-import org.openstreetmap.josm.gui.layer.LayerManager.LayerAddEvent;
-import org.openstreetmap.josm.gui.layer.LayerManager.LayerChangeListener;
-import org.openstreetmap.josm.gui.layer.LayerManager.LayerOrderChangeEvent;
-import org.openstreetmap.josm.gui.layer.LayerManager.LayerRemoveEvent;
-import org.openstreetmap.josm.gui.layer.MainLayerManager.ActiveLayerChangeEvent;
-import org.openstreetmap.josm.gui.layer.MainLayerManager.ActiveLayerChangeListener;
 import org.openstreetmap.josm.gui.layer.MapViewPaintable;
-import org.openstreetmap.josm.gui.layer.OsmDataLayer;
 import org.openstreetmap.josm.gui.util.KeyPressReleaseListener;
 import org.openstreetmap.josm.gui.util.ModifierExListener;
 import org.openstreetmap.josm.plugins.Splinex.Spline.SplinePoint;
@@ -47,8 +40,7 @@ import org.openstreetmap.josm.tools.ImageProvider;
 import org.openstreetmap.josm.tools.Shortcut;
 
 @SuppressWarnings("serial")
-public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPressReleaseListener, ModifierExListener,
-        LayerChangeListener, ActiveLayerChangeListener {
+public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPressReleaseListener, ModifierExListener {
     private final Cursor cursorJoinNode;
     private final Cursor cursorJoinWay;
 
@@ -60,6 +52,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
     private final MapFrame mapFrame;
     private final NodeHighlight nodeHighlight = new NodeHighlight();
     private final DrawSplineDataSetListener drawSplineDataSetListener = new DrawSplineDataSetListener();
+    private final DrawSplineLayerManager drawSplineLayerManager = new DrawSplineLayerManager();
 
     boolean drawHelperLine;
 
@@ -77,8 +70,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
         backspaceAction = new BackSpaceAction();
         cursorJoinNode = ImageProvider.getCursor("crosshair", "joinnode");
         cursorJoinWay = ImageProvider.getCursor("crosshair", "joinway");
-        MainApplication.getLayerManager().addLayerChangeListener(this);
-        MainApplication.getLayerManager().addActiveLayerChangeListener(this);
+        drawSplineLayerManager.register();
 
         this.mapFrame = mapFrame;
         this.mapFrame.mapView.addTemporaryLayer(this);
@@ -98,7 +90,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
         mapFrame.keyDetector.addModifierExListener(this);
         mapFrame.keyDetector.addKeyListener(this);
         drawSplineDataSetListener.register();
-        DrawSplineHelper.createSplineFromSelection(splCached);
+        DrawSplineHelper.createSplineFromSelection(drawSplineLayerManager.getSpline());
     }
 
     int initialMoveDelay, initialMoveThreshold;
@@ -154,7 +146,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
             return;
         }
         if (!mapFrame.mapView.isActiveLayerDrawable()) return;
-        Spline spl = getSpline();
+        Spline spl = drawSplineLayerManager.getSpline();
         if (spl == null) return;
         helperEndpoint = null;
         dragControl = false;
@@ -281,7 +273,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
         if (mouseDownTime == null) return;
         if (!mapFrame.mapView.isActiveLayerDrawable()) return;
         if (System.currentTimeMillis() - mouseDownTime < initialMoveDelay) return;
-        Spline spl = getSpline();
+        Spline spl = drawSplineLayerManager.getSpline();
         if (spl == null) return;
         if (spl.isEmpty()) return;
         if (clickPos != null && clickPos.distanceSq(e.getPoint()) < initialMoveThreshold)
@@ -352,7 +344,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
     public void mouseMoved(MouseEvent e) {
         updateKeyModifiers(e);
         if (!mapFrame.mapView.isActiveLayerDrawable()) return;
-        Spline spl = getSpline();
+        Spline spl = drawSplineLayerManager.getSpline();
         if (spl == null) return;
         Point oldHelperEndpoint = helperEndpoint;
         PointHandle oldph = ph;
@@ -408,7 +400,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
     @Override
     public void paint(Graphics2D g, MapView mv, Bounds box) {
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        Spline spl = getSpline();
+        Spline spl = drawSplineLayerManager.getSpline();
         if (spl == null)
             return;
         spl.paint(g, mv, rubberLineColor, Color.green, helperEndpoint, direction);
@@ -435,42 +427,6 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
         public void actionPerformed(ActionEvent e) {
             UndoRedoHandler.getInstance().undo();
         }
-    }
-
-    private Spline splCached;
-
-    Spline getSpline() {
-        if (splCached != null)
-            return splCached;
-        Layer l = getLayerManager().getEditLayer();
-        if (!(l instanceof OsmDataLayer))
-            return null;
-        splCached = layerSplines.get(l);
-        if (splCached == null)
-            splCached = new Spline();
-        layerSplines.put(l, splCached);
-        return splCached;
-    }
-
-    @Override
-    public void activeOrEditLayerChanged(ActiveLayerChangeEvent e) {
-        splCached = layerSplines.get(MainApplication.getLayerManager().getActiveLayer());
-    }
-
-    Map<Layer, Spline> layerSplines = new HashMap<>();
-
-    @Override
-    public void layerOrderChanged(LayerOrderChangeEvent e) {
-    }
-
-    @Override
-    public void layerAdded(LayerAddEvent e) {
-    }
-
-    @Override
-    public void layerRemoving(LayerRemoveEvent e) {
-        layerSplines.remove(e.getRemovedLayer());
-        splCached = null;
     }
 
     @Override
