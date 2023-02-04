@@ -122,13 +122,13 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
     }
 
     protected Long mouseDownTime;
-    protected PointHandle ph;
+    protected PointHandle pointHandle;
     protected Point helperEndpoint;
     protected Point clickPos;
     protected EastNorth dragReference;
     protected boolean lockCounterpart;
     protected boolean lockCounterpartLength;
-    protected MoveCommand mc;
+    protected MoveCommand moveCommand;
     protected boolean dragControl;
     protected boolean dragSpline;
     protected SplineHit splineHit;
@@ -142,63 +142,63 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
             return;
         }
         if (!mapFrame.mapView.isActiveLayerDrawable()) return;
-        Spline spl = drawSplineLayerManager.getSpline();
-        if (spl == null) return;
+        Spline spline = drawSplineLayerManager.getSpline();
+        if (spline == null) return;
         helperEndpoint = null;
         dragControl = false;
         dragSpline = false;
         mouseDownTime = System.currentTimeMillis();
-        ph = spl.getNearestPoint(mapFrame.mapView, e.getPoint());
+        pointHandle = spline.getNearestPoint(mapFrame.mapView, e.getPoint());
         if (e.getClickCount() == 2) {
-            if (!spl.isClosed() && spl.nodeCount() > 1 && ph != null && ph.point == SplinePoint.ENDPOINT
-                    && ((ph.idx == 0 && direction == 1) || (ph.idx == spl.nodeCount() - 1 && direction == -1))) {
-                UndoRedoHandler.getInstance().add(new CloseSplineCommand(spl));
+            if (!spline.isClosed() && spline.nodeCount() > 1 && pointHandle != null && pointHandle.point == SplinePoint.ENDPOINT
+                    && ((pointHandle.idx == 0 && direction == 1) || (pointHandle.idx == spline.nodeCount() - 1 && direction == -1))) {
+                UndoRedoHandler.getInstance().add(new CloseSplineCommand(spline));
             } else {
-                spl.finishSpline();
+                spline.finishSpline();
             }
             direction = 0;
             return;
         }
         clickPos = e.getPoint();
         dragReference = mapFrame.mapView.getEastNorth(clickPos.x, clickPos.y);
-        if (ph != null) {
+        if (pointHandle != null) {
             if (ctrl) {
-                if (ph.point == SplinePoint.ENDPOINT) {
-                    ph = ph.otherPoint(SplinePoint.CONTROL_NEXT);
+                if (pointHandle.point == SplinePoint.ENDPOINT) {
+                    pointHandle = pointHandle.otherPoint(SplinePoint.CONTROL_NEXT);
                     lockCounterpart = true;
                     lockCounterpartLength = true;
                 } else
                     lockCounterpart = false;
             } else if (alt) {
-                DrawSplineHelper.deleteSplineNode(ph);
-            } else if (ph.point != SplinePoint.ENDPOINT) {
+                DrawSplineHelper.deleteSplineNode(pointHandle);
+            } else if (pointHandle.point != SplinePoint.ENDPOINT) {
                 lockCounterpart =
                         // TODO handle turnover at north
-                        Math.abs(ph.sn.cprev.heading(EastNorth.ZERO) - EastNorth.ZERO.heading(ph.sn.cnext)) < 5/180.0*Math.PI;
+                        Math.abs(pointHandle.sn.cprev.heading(EastNorth.ZERO) - EastNorth.ZERO.heading(pointHandle.sn.cnext)) < 5/180.0*Math.PI;
                 lockCounterpartLength =
-                        Math.min(ph.sn.cprev.length(), ph.sn.cnext.length()) /
-                        Math.max(ph.sn.cprev.length(), ph.sn.cnext.length()) > 0.95;
+                        Math.min(pointHandle.sn.cprev.length(), pointHandle.sn.cnext.length()) /
+                        Math.max(pointHandle.sn.cprev.length(), pointHandle.sn.cnext.length()) > 0.95;
             }
-            if (ph.point == SplinePoint.ENDPOINT && UndoRedoHandler.getInstance().hasUndoCommands()) {
+            if (pointHandle.point == SplinePoint.ENDPOINT && UndoRedoHandler.getInstance().hasUndoCommands()) {
                 Command cmd = UndoRedoHandler.getInstance().getLastCommand();
                 if (cmd instanceof MoveCommand) {
-                    mc = (MoveCommand) cmd;
-                    Collection<Node> pp = mc.getParticipatingPrimitives();
-                    if (pp.size() != 1 || !pp.contains(ph.sn.node))
-                        mc = null;
+                    moveCommand = (MoveCommand) cmd;
+                    Collection<Node> pp = moveCommand.getParticipatingPrimitives();
+                    if (pp.size() != 1 || !pp.contains(pointHandle.sn.node))
+                        moveCommand = null;
                     else
-                        mc.changeStartPoint(ph.sn.node.getEastNorth());
+                        moveCommand.changeStartPoint(pointHandle.sn.node.getEastNorth());
                 }
             }
-            if (ph.point != SplinePoint.ENDPOINT && UndoRedoHandler.getInstance().hasUndoCommands()) {
+            if (pointHandle.point != SplinePoint.ENDPOINT && UndoRedoHandler.getInstance().hasUndoCommands()) {
                 Command cmd = UndoRedoHandler.getInstance().getLastCommand();
-                if (!(cmd instanceof EditSplineCommand && ((EditSplineCommand) cmd).sNodeIs(ph.sn)))
+                if (!(cmd instanceof EditSplineCommand && ((EditSplineCommand) cmd).sNodeIs(pointHandle.sn)))
                     dragControl = true;
             }
             return;
         }
-        if (spl.doesHit(e.getX(), e.getY(), mapFrame.mapView)) {
-            Optional<SplineHit> optionalSplineHit = ClosestPoint.findTime(e.getX(), e.getY(), spl, mapFrame.mapView);
+        if (spline.doesHit(e.getX(), e.getY(), mapFrame.mapView)) {
+            Optional<SplineHit> optionalSplineHit = ClosestPoint.findTime(e.getX(), e.getY(), spline, mapFrame.mapView);
             if (optionalSplineHit.isPresent()) {
                 splineHit = optionalSplineHit.get();
                 if (ctrl) {
@@ -210,7 +210,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
                         result.a.ctrlB.subtract(result.a.pointB),
                         result.b.ctrlA.subtract(result.b.pointA)
                     );
-                    cmds.add(new AddSplineNodeCommand(spl, splineNode, false, splineHit.index));
+                    cmds.add(new AddSplineNodeCommand(spline, splineNode, false, splineHit.index));
                     cmds.add(new EditSplineCommand(splineHit.splineNodeA));
                     cmds.add(new EditSplineCommand(splineHit.splineNodeB));
                     UndoRedoHandler.getInstance().add(new InsertSplineNodeCommand(cmds));
@@ -223,42 +223,42 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
             }
             return;
         }
-        if (spl.isClosed()) return;
+        if (spline.isClosed()) return;
         if (direction == 0) {
-            if (spl.nodeCount() < 2) {
+            if (spline.nodeCount() < 2) {
                 direction = 1;
             } else {
                 return;
             }
         }
-        Node n = null;
+        Node node = null;
         boolean existing = false;
         if (!ctrl) {
-            n = mapFrame.mapView.getNearestNode(e.getPoint(), OsmPrimitive::isUsable);
+            node = mapFrame.mapView.getNearestNode(e.getPoint(), OsmPrimitive::isUsable);
             existing = true;
         }
-        if (n == null) {
-            n = new Node(mapFrame.mapView.getLatLon(e.getX(), e.getY()));
+        if (node == null) {
+            node = new Node(mapFrame.mapView.getLatLon(e.getX(), e.getY()));
             existing = false;
         }
-        int idx = direction == -1 ? 0 : spl.nodeCount();
-        UndoRedoHandler.getInstance().add(new AddSplineNodeCommand(spl, new SplineNode(n), existing, idx));
-        ph = new PointHandle(spl, idx, direction == -1 ? SplinePoint.CONTROL_PREV : SplinePoint.CONTROL_NEXT);
+        int idx = direction == -1 ? 0 : spline.nodeCount();
+        UndoRedoHandler.getInstance().add(new AddSplineNodeCommand(spline, new SplineNode(node), existing, idx));
+        pointHandle = new PointHandle(spline, idx, direction == -1 ? SplinePoint.CONTROL_PREV : SplinePoint.CONTROL_NEXT);
         lockCounterpart = true;
         MainApplication.getLayerManager().invalidateEditLayer();
     }
 
     @Override
     public void mouseReleased(MouseEvent e) {
-        mc = null;
+        moveCommand = null;
         mouseDownTime = null;
         dragSpline = false;
         clickPos = null;
         mouseMoved(e);
-        if (direction == 0 && ph != null && e.getClickCount() < 2) {
-            if (ph.idx >= ph.getSpline().nodeCount() - 1)
+        if (direction == 0 && pointHandle != null && e.getClickCount() < 2) {
+            if (pointHandle.idx >= pointHandle.getSpline().nodeCount() - 1)
                 direction = 1;
-            else if (ph.idx == 0)
+            else if (pointHandle.idx == 0)
                 direction = -1;
         }
     }
@@ -269,9 +269,9 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
         if (mouseDownTime == null) return;
         if (!mapFrame.mapView.isActiveLayerDrawable()) return;
         if (System.currentTimeMillis() - mouseDownTime < initialMoveDelay) return;
-        Spline spl = drawSplineLayerManager.getSpline();
-        if (spl == null) return;
-        if (spl.isEmpty()) return;
+        Spline spline = drawSplineLayerManager.getSpline();
+        if (spline == null) return;
+        if (spline.isEmpty()) return;
         if (clickPos != null && clickPos.distanceSq(e.getPoint()) < initialMoveThreshold)
             return;
         EastNorth en = mapFrame.mapView.getEastNorth(e.getX(), e.getY());
@@ -314,21 +314,21 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
             return;
         }
         clickPos = null;
-        if (ph == null) return;
-        if (ph.point == SplinePoint.ENDPOINT) {
-            if (mc == null) {
-                mc = new MoveCommand(ph.sn.node, ph.sn.node.getEastNorth(), en);
-                UndoRedoHandler.getInstance().add(mc);
+        if (pointHandle == null) return;
+        if (pointHandle.point == SplinePoint.ENDPOINT) {
+            if (moveCommand == null) {
+                moveCommand = new MoveCommand(pointHandle.sn.node, pointHandle.sn.node.getEastNorth(), en);
+                UndoRedoHandler.getInstance().add(moveCommand);
             } else
-                mc.applyVectorTo(en);
+                moveCommand.applyVectorTo(en);
         } else {
             if (dragControl) {
-                UndoRedoHandler.getInstance().add(new EditSplineCommand(ph.sn));
+                UndoRedoHandler.getInstance().add(new EditSplineCommand(pointHandle.sn));
                 dragControl = false;
             }
-            ph.movePoint(en);
+            pointHandle.movePoint(en);
             if (lockCounterpart) {
-                ph.moveCounterpart(lockCounterpartLength);
+                pointHandle.moveCounterpart(lockCounterpartLength);
             }
         }
         MainApplication.getLayerManager().invalidateEditLayer();
@@ -340,43 +340,43 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
     public void mouseMoved(MouseEvent e) {
         updateKeyModifiers(e);
         if (!mapFrame.mapView.isActiveLayerDrawable()) return;
-        Spline spl = drawSplineLayerManager.getSpline();
-        if (spl == null) return;
+        Spline spline = drawSplineLayerManager.getSpline();
+        if (spline == null) return;
         Point oldHelperEndpoint = helperEndpoint;
-        PointHandle oldph = ph;
+        PointHandle oldPointHandle = pointHandle;
         boolean redraw = false;
-        ph = spl.getNearestPoint(mapFrame.mapView, e.getPoint());
-        if (ph == null)
-            if (!ctrl && spl.doesHit(e.getX(), e.getY(), mapFrame.mapView)) {
+        pointHandle = spline.getNearestPoint(mapFrame.mapView, e.getPoint());
+        if (pointHandle == null)
+            if (!ctrl && spline.doesHit(e.getX(), e.getY(), mapFrame.mapView)) {
                 helperEndpoint = null;
                 mapFrame.mapView.setNewCursor(Cursor.MOVE_CURSOR, this);
             } else {
-                Node n = null;
+                Node node = null;
                 if (!ctrl)
-                    n = mapFrame.mapView.getNearestNode(e.getPoint(), OsmPrimitive::isUsable);
-                if (n == null) {
+                    node = mapFrame.mapView.getNearestNode(e.getPoint(), OsmPrimitive::isUsable);
+                if (node == null) {
                     redraw = nodeHighlight.unset();
                     helperEndpoint = e.getPoint();
                     mapFrame.mapView.setNewCursor(cursor, this);
                 } else {
-                    redraw = nodeHighlight.set(n);
+                    redraw = nodeHighlight.set(node);
                     mapFrame.mapView.setNewCursor(cursorJoinNode, this);
-                    helperEndpoint = mapFrame.mapView.getPoint(n);
+                    helperEndpoint = mapFrame.mapView.getPoint(node);
                 }
             }
         else {
             helperEndpoint = null;
             mapFrame.mapView.setNewCursor(cursorJoinWay, this);
-            if (ph.point == SplinePoint.ENDPOINT)
-                redraw = nodeHighlight.set(ph.sn.node);
+            if (pointHandle.point == SplinePoint.ENDPOINT)
+                redraw = nodeHighlight.set(pointHandle.sn.node);
             else
                 redraw = nodeHighlight.unset();
         }
-        if (!drawHelperLine || spl.isClosed() || direction == 0)
+        if (!drawHelperLine || spline.isClosed() || direction == 0)
             helperEndpoint = null;
 
-        if (redraw || oldHelperEndpoint != helperEndpoint || (oldph == null && ph != null)
-                || (oldph != null && !oldph.equals(ph)))
+        if (redraw || oldHelperEndpoint != helperEndpoint || (oldPointHandle == null && pointHandle != null)
+                || (oldPointHandle != null && !oldPointHandle.equals(pointHandle)))
             MainApplication.getLayerManager().invalidateEditLayer();
     }
 
@@ -394,17 +394,17 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
 
 
     @Override
-    public void paint(Graphics2D g, MapView mv, Bounds box) {
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    public void paint(Graphics2D graphics2D, MapView mapView, Bounds box) {
+        graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         Spline spl = drawSplineLayerManager.getSpline();
         if (spl == null)
             return;
-        spl.paint(g, mv, rubberLineColor, Color.green, helperEndpoint, direction);
-        spl.paintProposedNodes(g, mv);
-        if (ph != null && (ph.point != SplinePoint.ENDPOINT || (nodeHighlight.isNodeDeleted()))) {
-            g.setColor(MapPaintSettings.INSTANCE.getSelectedColor());
-            Point p = mv.getPoint(ph.getPoint());
-            g.fillRect(p.x - 1, p.y - 1, 3, 3);
+        spl.paint(graphics2D, mapView, rubberLineColor, Color.green, helperEndpoint, direction);
+        spl.paintProposedNodes(graphics2D, mapView);
+        if (pointHandle != null && (pointHandle.point != SplinePoint.ENDPOINT || (nodeHighlight.isNodeDeleted()))) {
+            graphics2D.setColor(MapPaintSettings.INSTANCE.getSelectedColor());
+            Point point = mapView.getPoint(pointHandle.getPoint());
+            graphics2D.fillRect(point.x - 1, point.y - 1, 3, 3);
         }
     }
 
@@ -427,8 +427,8 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
 
     @Override
     public void doKeyPressed(KeyEvent e) {
-        if (e.getKeyCode() == KeyEvent.VK_DELETE && ph != null) {
-            DrawSplineHelper.deleteSplineNode(ph);
+        if (e.getKeyCode() == KeyEvent.VK_DELETE && pointHandle != null) {
+            DrawSplineHelper.deleteSplineNode(pointHandle);
             e.consume();
         }
         if (e.getKeyCode() == KeyEvent.VK_ESCAPE && direction != 0) {
