@@ -440,32 +440,26 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
 
     @Override
     public void tagsChanged(TagsChangedEvent event) {
-
     }
 
     @Override
     public void nodeMoved(NodeMovedEvent event) {
-
     }
 
     @Override
     public void wayNodesChanged(WayNodesChangedEvent event) {
-
     }
 
     @Override
     public void relationMembersChanged(RelationMembersChangedEvent event) {
-
     }
 
     @Override
     public void otherDatasetChange(AbstractDatasetChangedEvent event) {
-
     }
 
     @Override
     public void dataChanged(DataChangedEvent event) {
-
     }
 
     public static class BackSpaceAction extends AbstractAction {
@@ -499,12 +493,10 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
 
     @Override
     public void layerOrderChanged(LayerOrderChangeEvent e) {
-        // Do nothing
     }
 
     @Override
     public void layerAdded(LayerAddEvent e) {
-        // Do nothing
     }
 
     @Override
@@ -528,7 +520,6 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
 
     @Override
     public void doKeyReleased(KeyEvent e) {
-        // Do nothing
     }
 
 }
