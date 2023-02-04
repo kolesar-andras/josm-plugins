@@ -1,12 +1,14 @@
-package org.openstreetmap.josm.plugins.Splinex;
+package org.openstreetmap.josm.plugins.Splinex.algorithm;
 
 import org.openstreetmap.josm.data.coor.EastNorth;
+import org.openstreetmap.josm.plugins.Splinex.BezierDef;
+import org.openstreetmap.josm.plugins.Splinex.SplineHit;
 
 public class Split {
 
-    static class Result {
-        BezierDef a;
-        BezierDef b;
+    public static class Result {
+        public BezierDef a;
+        public BezierDef b;
 
         public Result(BezierDef a, BezierDef b) {
             this.a = a;

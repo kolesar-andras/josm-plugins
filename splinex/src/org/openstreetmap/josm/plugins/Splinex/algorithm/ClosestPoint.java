@@ -1,7 +1,10 @@
-package org.openstreetmap.josm.plugins.Splinex;
+package org.openstreetmap.josm.plugins.Splinex.algorithm;
 
 import org.openstreetmap.josm.data.coor.EastNorth;
 import org.openstreetmap.josm.gui.MapView;
+import org.openstreetmap.josm.plugins.Splinex.BezierDef;
+import org.openstreetmap.josm.plugins.Splinex.Spline;
+import org.openstreetmap.josm.plugins.Splinex.SplineHit;
 
 import java.util.Optional;
 

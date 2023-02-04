@@ -42,6 +42,8 @@ import org.openstreetmap.josm.gui.layer.OsmDataLayer;
 import org.openstreetmap.josm.gui.util.KeyPressReleaseListener;
 import org.openstreetmap.josm.gui.util.ModifierExListener;
 import org.openstreetmap.josm.plugins.Splinex.Spline.SplinePoint;
+import org.openstreetmap.josm.plugins.Splinex.algorithm.ClosestPoint;
+import org.openstreetmap.josm.plugins.Splinex.algorithm.Split;
 import org.openstreetmap.josm.plugins.Splinex.command.*;
 import org.openstreetmap.josm.plugins.Splinex.importer.SchneiderImporter;
 import org.openstreetmap.josm.spi.preferences.Config;

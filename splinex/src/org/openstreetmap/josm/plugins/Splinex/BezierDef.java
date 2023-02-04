@@ -2,11 +2,11 @@ package org.openstreetmap.josm.plugins.Splinex;
 
 import org.openstreetmap.josm.data.coor.EastNorth;
 
-class BezierDef {
-    EastNorth pointA;
-    EastNorth ctrlA;
-    EastNorth ctrlB;
-    EastNorth pointB;
+public class BezierDef {
+    public EastNorth pointA;
+    public EastNorth ctrlA;
+    public EastNorth ctrlB;
+    public EastNorth pointB;
 
     public BezierDef(SplineHit splineHit) {
         pointA = splineHit.splineNodeA.node.getEastNorth();
