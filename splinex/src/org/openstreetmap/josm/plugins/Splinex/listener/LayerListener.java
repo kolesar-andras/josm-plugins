@@ -1,4 +1,4 @@
-package org.openstreetmap.josm.plugins.Splinex;
+package org.openstreetmap.josm.plugins.Splinex.listener;
 
 import org.openstreetmap.josm.gui.layer.Layer;
 import org.openstreetmap.josm.gui.layer.LayerManager.LayerAddEvent;
@@ -8,13 +8,14 @@ import org.openstreetmap.josm.gui.layer.MainLayerManager.ActiveLayerChangeEvent;
 import org.openstreetmap.josm.gui.layer.MainLayerManager.ActiveLayerChangeListener;
 import org.openstreetmap.josm.gui.layer.OsmDataLayer;
 import org.openstreetmap.josm.gui.layer.LayerManager.LayerChangeListener;
+import org.openstreetmap.josm.plugins.Splinex.Spline;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.openstreetmap.josm.gui.MainApplication.getLayerManager;
 
-public class DrawSplineLayerManager implements LayerChangeListener, ActiveLayerChangeListener {
+public class LayerListener implements LayerChangeListener, ActiveLayerChangeListener {
 
     protected Spline splCached;
     protected Map<Layer, Spline> layerSplines = new HashMap<>();

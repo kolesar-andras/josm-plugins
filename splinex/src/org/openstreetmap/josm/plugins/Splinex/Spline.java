@@ -136,7 +136,7 @@ public class Spline {
         }
     }
 
-    public PointHandle getNearestPoint(MapView mv, Point2D point) {
+    public PointHandle getNearestPointHandle(MapView mv, Point2D point) {
         PointHandle bestPH = null;
         double bestDistSq = NavigatableComponent.PROP_SNAP_DISTANCE.get();
         bestDistSq = bestDistSq * bestDistSq;

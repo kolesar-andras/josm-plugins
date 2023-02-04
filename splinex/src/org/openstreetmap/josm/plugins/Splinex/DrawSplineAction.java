@@ -31,6 +31,8 @@ import org.openstreetmap.josm.gui.util.KeyPressReleaseListener;
 import org.openstreetmap.josm.gui.util.ModifierExListener;
 import org.openstreetmap.josm.plugins.Splinex.algorithm.ClosestPoint;
 import org.openstreetmap.josm.plugins.Splinex.command.*;
+import org.openstreetmap.josm.plugins.Splinex.listener.DatasetListener;
+import org.openstreetmap.josm.plugins.Splinex.listener.LayerListener;
 import org.openstreetmap.josm.spi.preferences.Config;
 import org.openstreetmap.josm.tools.ImageProvider;
 import org.openstreetmap.josm.tools.Shortcut;
@@ -49,8 +51,8 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
 
     private final MapFrame mapFrame;
     private final NodeHighlight nodeHighlight = new NodeHighlight();
-    private final DrawSplineDataSetListener drawSplineDataSetListener = new DrawSplineDataSetListener();
-    private final DrawSplineLayerManager drawSplineLayerManager = new DrawSplineLayerManager();
+    private final DatasetListener dataSetListener = new DatasetListener();
+    private final LayerListener layerListener = new LayerListener();
 
     public DrawSplineAction(MapFrame mapFrame) {
         super(tr("Spline drawing"), // name
@@ -61,7 +63,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
                         KeyEvent.VK_L, Shortcut.DIRECT),
                 DrawSplineHelper.getCursor());
 
-        drawSplineLayerManager.register();
+        layerListener.register();
         this.mapFrame = mapFrame;
         this.mapFrame.mapView.addTemporaryLayer(this);
         readPreferences();
@@ -79,8 +81,8 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
         mapFrame.mapView.addMouseMotionListener(this);
         mapFrame.keyDetector.addModifierExListener(this);
         mapFrame.keyDetector.addKeyListener(this);
-        drawSplineDataSetListener.register();
-        DrawSplineHelper.createSplineFromSelection(drawSplineLayerManager.getSpline());
+        dataSetListener.register();
+        DrawSplineHelper.createSplineFromSelection(layerListener.getSpline());
     }
 
     protected Color rubberLineColor;
@@ -136,12 +138,12 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
             return;
         }
         if (!mapFrame.mapView.isActiveLayerDrawable()) return;
-        Spline spline = drawSplineLayerManager.getSpline();
+        Spline spline = layerListener.getSpline();
         if (spline == null) return;
         helperEndpoint = null;
         dragControl = false;
         mouseDownTime = System.currentTimeMillis();
-        pointHandle = spline.getNearestPoint(mapFrame.mapView, e.getPoint());
+        pointHandle = spline.getNearestPointHandle(mapFrame.mapView, e.getPoint());
         clickPos = e.getPoint();
         if (e.getClickCount() == 2) {
             handleDoubleClick(spline);
@@ -174,7 +176,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
         if (mouseDownTime == null) return;
         if (!mapFrame.mapView.isActiveLayerDrawable()) return;
         if (System.currentTimeMillis() - mouseDownTime < initialMoveDelay) return;
-        Spline spline = drawSplineLayerManager.getSpline();
+        Spline spline = layerListener.getSpline();
         if (spline == null) return;
         if (spline.isEmpty()) return;
         if (clickPos != null && clickPos.distanceSq(e.getPoint()) < initialMoveThreshold)
@@ -198,12 +200,12 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
     public void mouseMoved(MouseEvent e) {
         updateKeyModifiers(e);
         if (!mapFrame.mapView.isActiveLayerDrawable()) return;
-        Spline spline = drawSplineLayerManager.getSpline();
+        Spline spline = layerListener.getSpline();
         if (spline == null) return;
         Point oldHelperEndpoint = helperEndpoint;
         PointHandle oldPointHandle = pointHandle;
         boolean redraw = false;
-        pointHandle = spline.getNearestPoint(mapFrame.mapView, e.getPoint());
+        pointHandle = spline.getNearestPointHandle(mapFrame.mapView, e.getPoint());
         if (pointHandle == null)
             if (!ctrl && spline.doesHit(e.getX(), e.getY(), mapFrame.mapView)) {
                 helperEndpoint = null;
@@ -359,7 +361,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
 
     @Override
     public void paint(Graphics2D graphics2D, MapView mapView, Bounds box) {
-        Spline spl = drawSplineLayerManager.getSpline();
+        Spline spl = layerListener.getSpline();
         if (spl == null)
             return;
         graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);

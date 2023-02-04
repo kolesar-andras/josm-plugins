@@ -1,10 +1,10 @@
-package org.openstreetmap.josm.plugins.Splinex;
+package org.openstreetmap.josm.plugins.Splinex.listener;
 
 import org.openstreetmap.josm.data.osm.event.*;
 
 import static org.openstreetmap.josm.gui.MainApplication.getLayerManager;
 
-public class DrawSplineDataSetListener implements DataSetListener {
+public class DatasetListener implements DataSetListener {
 
     public void register() {
         getLayerManager().getEditLayer().getDataSet().addDataSetListener(this);
