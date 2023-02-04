@@ -59,6 +59,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
     private final BackSpaceAction backspaceAction;
 
     private final MapFrame mapFrame;
+    private final NodeHighlight nodeHighlight = new NodeHighlight();
 
     boolean drawHelperLine;
 
@@ -121,7 +122,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
         mapFrame.statusLine.activateAnglePanel(false);
         mapFrame.keyDetector.removeModifierExListener(this);
         mapFrame.keyDetector.removeKeyListener(this);
-        removeHighlighting();
+        nodeHighlight.unset();
         MainApplication.getLayerManager().invalidateEditLayer();
     }
 
@@ -343,7 +344,6 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
         MainApplication.getLayerManager().invalidateEditLayer();
     }
 
-    Node nodeHighlight;
     short direction;
 
     @Override
@@ -365,11 +365,11 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
                 if (!ctrl)
                     n = mapFrame.mapView.getNearestNode(e.getPoint(), OsmPrimitive::isUsable);
                 if (n == null) {
-                    redraw = removeHighlighting();
+                    redraw = nodeHighlight.unset();
                     helperEndpoint = e.getPoint();
                     mapFrame.mapView.setNewCursor(cursor, this);
                 } else {
-                    redraw = setHighlight(n);
+                    redraw = nodeHighlight.set(n);
                     mapFrame.mapView.setNewCursor(cursorJoinNode, this);
                     helperEndpoint = mapFrame.mapView.getPoint(n);
                 }
@@ -378,9 +378,9 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
             helperEndpoint = null;
             mapFrame.mapView.setNewCursor(cursorJoinWay, this);
             if (ph.point == SplinePoint.ENDPOINT)
-                redraw = setHighlight(ph.sn.node);
+                redraw = nodeHighlight.set(ph.sn.node);
             else
-                redraw = removeHighlighting();
+                redraw = nodeHighlight.unset();
         }
         if (!drawHelperLine || spl.isClosed() || direction == 0)
             helperEndpoint = null;
@@ -397,32 +397,11 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
     public void mouseExited(MouseEvent e) {
         if (!mapFrame.mapView.isActiveLayerDrawable())
             return;
-        removeHighlighting();
+        nodeHighlight.unset();
         helperEndpoint = null;
         MainApplication.getLayerManager().invalidateEditLayer();
     }
 
-    private boolean setHighlight(Node n) {
-        if (nodeHighlight == n)
-            return false;
-        removeHighlighting();
-        nodeHighlight = n;
-        n.setHighlighted(true);
-        return true;
-    }
-
-    /**
-     * Removes target highlighting from primitives. Issues repaint if required.
-     * Returns true if a repaint has been issued.
-     */
-    private boolean removeHighlighting() {
-        if (nodeHighlight != null) {
-            nodeHighlight.setHighlighted(false);
-            nodeHighlight = null;
-            return true;
-        }
-        return false;
-    }
 
     @Override
     public void paint(Graphics2D g, MapView mv, Bounds box) {
@@ -432,7 +411,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
             return;
         spl.paint(g, mv, rubberLineColor, Color.green, helperEndpoint, direction);
         spl.paintProposedNodes(g, mv);
-        if (ph != null && (ph.point != SplinePoint.ENDPOINT || (nodeHighlight != null && nodeHighlight.isDeleted()))) {
+        if (ph != null && (ph.point != SplinePoint.ENDPOINT || (nodeHighlight.isNodeDeleted()))) {
             g.setColor(MapPaintSettings.INSTANCE.getSelectedColor());
             Point p = mv.getPoint(ph.getPoint());
             g.fillRect(p.x - 1, p.y - 1, 3, 3);
