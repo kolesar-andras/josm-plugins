@@ -147,12 +147,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
         mouseDownTime = System.currentTimeMillis();
         pointHandle = spline.getNearestPoint(mapFrame.mapView, e.getPoint());
         if (e.getClickCount() == 2) {
-            if (!spline.isClosed() && spline.nodeCount() > 1 && pointHandle != null && pointHandle.point == SplinePoint.ENDPOINT
-                    && ((pointHandle.idx == 0 && direction == 1) || (pointHandle.idx == spline.nodeCount() - 1 && direction == -1))) {
-                UndoRedoHandler.getInstance().add(new CloseSplineCommand(spline));
-            } else {
-                spline.finishSpline();
-            }
+            DrawSplineHelper.handleDoubleClick(spline, pointHandle, direction);
             direction = 0;
             return;
         }

@@ -98,4 +98,14 @@ class DrawSplineHelper {
             splineHit.splineNodeB.cnext = PointHandle.computeCounterpart(splineHit.splineNodeB.cnext, splineHit.splineNodeB.cprev, false);
         }
     }
+
+    protected static void handleDoubleClick(Spline spline, PointHandle pointHandle, int direction) {
+        if (!spline.isClosed() && spline.nodeCount() > 1 && pointHandle != null && pointHandle.point == Spline.SplinePoint.ENDPOINT
+            && ((pointHandle.idx == 0 && direction == 1) || (pointHandle.idx == spline.nodeCount() - 1 && direction == -1))) {
+            UndoRedoHandler.getInstance().add(new CloseSplineCommand(spline));
+        } else {
+            spline.finishSpline();
+        }
+    }
+
 }
