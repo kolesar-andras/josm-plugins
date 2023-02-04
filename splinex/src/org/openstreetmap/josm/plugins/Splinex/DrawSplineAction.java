@@ -150,17 +150,13 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
         dragReference = mapFrame.mapView.getEastNorth(clickPos.x, clickPos.y);
         if (e.getClickCount() == 2) {
             handleDoubleClick(spline);
-            return;
-        }
-        if (pointHandle != null) {
+        } else if (pointHandle != null) {
             handleClickOnPointHandle();
-            return;
-        }
-        if (spline.doesHit(e.getX(), e.getY(), mapFrame.mapView)) {
+        } else if (spline.doesHit(e.getX(), e.getY(), mapFrame.mapView)) {
             handleClickOnSpline(spline, e);
-            return;
+        } else {
+            handleClickOutsideSpline(spline, e);
         }
-        handleClickOutsideSpline(spline, e);
     }
 
     @Override
