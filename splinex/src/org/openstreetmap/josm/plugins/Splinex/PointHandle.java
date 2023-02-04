@@ -7,7 +7,7 @@ import java.util.Objects;
 public class PointHandle {
     private final Spline spline;
     public final int idx;
-    public final Spline.SNode sn;
+    public final SplineNode sn;
     public final Spline.SplinePoint point;
 
     public PointHandle(Spline spline, int idx, Spline.SplinePoint point) {

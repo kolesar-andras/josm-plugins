@@ -33,32 +33,15 @@ import org.openstreetmap.josm.plugins.Splinex.exporter.CubicBezier;
 public class Spline {
     public static IntegerProperty PROP_SPLINEPOINTS = new IntegerProperty("edit.spline.num_points", 10);
 
-    public static class SNode {
-        public final Node node; // Endpoint
-        public EastNorth cprev, cnext; // Relative offsets of control points
-
-        public SNode(Node node) {
-            this.node = node;
-            cprev = EastNorth.ZERO;
-            cnext = EastNorth.ZERO;
-        }
-
-        public SNode(Node node, EastNorth cprev, EastNorth cnext) {
-            this.node = node;
-            this.cprev = cprev;
-            this.cnext = cnext;
-        }
-    }
-
     public NodeList nodes = new NodeList();
 
-    public SNode getFirstSegment() {
+    public SplineNode getFirstSegment() {
         if (nodes.isEmpty())
             return null;
         return nodes.getFirst();
     }
 
-    public SNode getLastSegment() {
+    public SplineNode getLastSegment() {
         if (nodes.isEmpty())
             return null;
         return nodes.getLast();
@@ -87,7 +70,7 @@ public class Spline {
             cbPrev = new Point2D.Double(helperEndpoint.x, helperEndpoint.y);
             curv.moveTo(helperEndpoint.x, helperEndpoint.y);
         }
-        for (SNode sn : nodes) {
+        for (SplineNode sn : nodes) {
             Point2D pt = mv.getPoint2D(sn.node);
             EastNorth en = sn.node.getEastNorth();
 
@@ -131,8 +114,8 @@ public class Spline {
         Stroke stroke = new BasicStroke(1.2f);
         Color color = new Color(1.0f, 1.0f, 1.0f, 0.6f);
         int detail = PROP_SPLINEPOINTS.get();
-        Iterator<SNode> it = nodes.iterator();
-        SNode sn = it.next();
+        Iterator<SplineNode> it = nodes.iterator();
+        SplineNode sn = it.next();
         EastNorth a = sn.node.getEastNorth();
         EastNorth ca = a.add(sn.cnext);
         while (it.hasNext()) {
@@ -183,11 +166,11 @@ public class Spline {
         //long start = System.nanoTime();
         //sht.chkCnt = 0;
         sht.setCoord(x, y, NavigatableComponent.PROP_SNAP_DISTANCE.get());
-        SNode prevSNode = null;
+        SplineNode prevSplineNode = null;
         Point2D prev = null;
         Point2D cbPrev = null;
         int index = 0;
-        for (SNode sn : nodes) {
+        for (SplineNode sn : nodes) {
             Point2D pt = mv.getPoint2D(sn.node);
             EastNorth en = sn.node.getEastNorth();
             Point2D ca = mv.getPoint2D(en.add(sn.cprev));
@@ -195,10 +178,10 @@ public class Spline {
             if (cbPrev != null)
                 if (sht.checkCurve(prev.getX(), prev.getY(), cbPrev.getX(), cbPrev.getY(), ca.getX(), ca.getY(),
                         pt.getX(), pt.getY()))
-                    return Optional.of(new SplineHit(prevSNode, sn, index));
+                    return Optional.of(new SplineHit(prevSplineNode, sn, index));
             cbPrev = mv.getPoint2D(en.add(sn.cnext));
             prev = pt;
-            prevSNode = sn;
+            prevSplineNode = sn;
             index++;
         }
         //chkTime = (int) ((System.nanoTime() - start) / 1000);
@@ -211,8 +194,8 @@ public class Spline {
         int detail = PROP_SPLINEPOINTS.get();
         Way w = new Way();
         List<Command> cmds = new LinkedList<>();
-        Iterator<SNode> it = nodes.iterator();
-        SNode sn = it.next();
+        Iterator<SplineNode> it = nodes.iterator();
+        SplineNode sn = it.next();
         if (sn.node.isDeleted())
             cmds.add(new UndeleteNodeCommand(sn.node));
         w.addNode(sn.node);
@@ -247,7 +230,7 @@ public class Spline {
 
     public List<OsmPrimitive> getNodes() {
         ArrayList<OsmPrimitive> result = new ArrayList<>(nodes.size());
-        for (SNode sn : nodes) {
+        for (SplineNode sn : nodes) {
             result.add(sn.node);
         }
         return result;

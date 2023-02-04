@@ -5,6 +5,7 @@ import org.openstreetmap.josm.data.osm.DefaultNameFormatter;
 import org.openstreetmap.josm.data.osm.OsmPrimitive;
 import org.openstreetmap.josm.gui.MainApplication;
 import org.openstreetmap.josm.plugins.Splinex.Spline;
+import org.openstreetmap.josm.plugins.Splinex.SplineNode;
 import org.openstreetmap.josm.tools.ImageProvider;
 
 import javax.swing.*;
@@ -15,12 +16,12 @@ import static org.openstreetmap.josm.tools.I18n.tr;
 
 public class AddSplineNodeCommand extends Command {
     private final Spline spline;
-    private final Spline.SNode sn;
+    private final SplineNode sn;
     private final boolean existing;
     private final int idx;
     boolean affected;
 
-    public AddSplineNodeCommand(Spline spline, Spline.SNode sn, boolean existing, int idx) {
+    public AddSplineNodeCommand(Spline spline, SplineNode sn, boolean existing, int idx) {
         super(MainApplication.getLayerManager().getEditDataSet());
         this.spline = spline;
         this.sn = sn;
@@ -28,7 +29,7 @@ public class AddSplineNodeCommand extends Command {
         this.idx = idx;
     }
 
-    public AddSplineNodeCommand(Spline spline, Spline.SNode sn, boolean existing) {
+    public AddSplineNodeCommand(Spline spline, SplineNode sn, boolean existing) {
         this(spline, sn, existing, spline.nodes.size() - 1);
     }
 

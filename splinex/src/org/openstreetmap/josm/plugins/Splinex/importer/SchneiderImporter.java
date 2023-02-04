@@ -5,6 +5,7 @@ import org.jhotdraw.geom.BezierPath;
 import org.openstreetmap.josm.data.coor.EastNorth;
 import org.openstreetmap.josm.data.osm.Node;
 import org.openstreetmap.josm.plugins.Splinex.Spline;
+import org.openstreetmap.josm.plugins.Splinex.SplineNode;
 
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
@@ -25,7 +26,7 @@ public class SchneiderImporter {
                 c[i] = new EastNorth(node.x[i], node.y[i]);
             }
             spline.nodes.add(
-                new Spline.SNode(
+                new SplineNode(
                     new Node(c[0]),
                     c[1].subtract(c[0]),
                     c[2].subtract(c[0])

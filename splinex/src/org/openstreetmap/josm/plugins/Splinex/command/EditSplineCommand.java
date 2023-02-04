@@ -4,7 +4,7 @@ import org.openstreetmap.josm.command.Command;
 import org.openstreetmap.josm.data.coor.EastNorth;
 import org.openstreetmap.josm.data.osm.OsmPrimitive;
 import org.openstreetmap.josm.gui.MainApplication;
-import org.openstreetmap.josm.plugins.Splinex.Spline;
+import org.openstreetmap.josm.plugins.Splinex.SplineNode;
 import org.openstreetmap.josm.tools.ImageProvider;
 
 import javax.swing.*;
@@ -13,9 +13,9 @@ import java.util.Collection;
 public class EditSplineCommand extends Command {
     EastNorth cprev;
     EastNorth cnext;
-    Spline.SNode sn;
+    SplineNode sn;
 
-    public EditSplineCommand(Spline.SNode sn) {
+    public EditSplineCommand(SplineNode sn) {
         super(MainApplication.getLayerManager().getEditDataSet());
         this.sn = sn;
         cprev = sn.cprev.add(0, 0);
@@ -54,7 +54,7 @@ public class EditSplineCommand extends Command {
         return ImageProvider.get("data", "node");
     }
 
-    public boolean sNodeIs(Spline.SNode node) {
+    public boolean sNodeIs(SplineNode node) {
         return sn == node;
     }
 }

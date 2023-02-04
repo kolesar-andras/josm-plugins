@@ -12,12 +12,12 @@ import java.util.NoSuchElementException;
  * this list hides deleted items
  */
 
-public class NodeList extends ArrayList<Spline.SNode> {
+public class NodeList extends ArrayList<SplineNode> {
     protected final static int NONE = -1;
 
     protected boolean closed;
 
-    class NodeIterator implements Iterator<Spline.SNode> {
+    class NodeIterator implements Iterator<SplineNode> {
         protected int cursor;
         protected boolean turned;
         protected int realIndex;
@@ -35,7 +35,7 @@ public class NodeList extends ArrayList<Spline.SNode> {
         }
 
         @Override
-        public Spline.SNode next() {
+        public SplineNode next() {
             int index = nextValidIndex();
             if (index == NONE) {
                 if (closed && !turned && NONE != (index = nextValidIndex(0))) {
@@ -60,7 +60,7 @@ public class NodeList extends ArrayList<Spline.SNode> {
             return NONE;
         }
 
-        protected Spline.SNode getItemAtIndex(int index) {
+        protected SplineNode getItemAtIndex(int index) {
             realIndex = index;
             return NodeList.super.get(index);
         }
@@ -72,13 +72,13 @@ public class NodeList extends ArrayList<Spline.SNode> {
 
     class NodeReverseIterator extends NodeIterator {
         @Override
-        protected Spline.SNode getItemAtIndex(int index) {
+        protected SplineNode getItemAtIndex(int index) {
             return super.getItemAtIndex(NodeList.super.size()-1-index);
         }
     }
 
     @Override
-    public Iterator<Spline.SNode> iterator() {
+    public Iterator<SplineNode> iterator() {
         return new NodeIterator();
     }
 
@@ -101,12 +101,12 @@ public class NodeList extends ArrayList<Spline.SNode> {
     }
 
     @Override
-    public Spline.SNode get(int index) {
+    public SplineNode get(int index) {
         return super.get(getRealIndex(index));
     }
 
     @Override
-    public void add(int index, Spline.SNode item) {
+    public void add(int index, SplineNode item) {
         if (!super.isEmpty() && isEmpty()) {
             // cleanup before creating new spline
             // if previous one had only deleted nodes
@@ -121,7 +121,7 @@ public class NodeList extends ArrayList<Spline.SNode> {
     }
 
     @Override
-    public Spline.SNode remove(int index) {
+    public SplineNode remove(int index) {
         return super.remove(getRealIndex(index));
     }
 
@@ -131,11 +131,11 @@ public class NodeList extends ArrayList<Spline.SNode> {
         closed = false;
     }
 
-    public Spline.SNode getFirst() {
+    public SplineNode getFirst() {
         return new NodeIterator().next();
     }
 
-    public Spline.SNode getLast() {
+    public SplineNode getLast() {
         return new NodeReverseIterator().next();
     }
 

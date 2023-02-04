@@ -6,6 +6,7 @@ import org.openstreetmap.josm.data.osm.OsmPrimitive;
 import org.openstreetmap.josm.gui.MainApplication;
 import org.openstreetmap.josm.plugins.Splinex.NodeList;
 import org.openstreetmap.josm.plugins.Splinex.Spline;
+import org.openstreetmap.josm.plugins.Splinex.SplineNode;
 
 import java.util.Collection;
 
@@ -30,7 +31,7 @@ public class CreateSplineCommand extends Command {
         spline.nodes = nodes;
         if (!existing) {
             DataSet dataset = getAffectedDataSet();
-            for (Spline.SNode sn : nodes) {
+            for (SplineNode sn : nodes) {
                 if (!dataset.containsNode(sn.node)) {
                     dataset.addPrimitive(sn.node);
                 }

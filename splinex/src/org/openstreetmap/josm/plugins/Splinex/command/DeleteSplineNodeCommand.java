@@ -5,6 +5,7 @@ import org.openstreetmap.josm.data.osm.DefaultNameFormatter;
 import org.openstreetmap.josm.data.osm.OsmPrimitive;
 import org.openstreetmap.josm.gui.MainApplication;
 import org.openstreetmap.josm.plugins.Splinex.Spline;
+import org.openstreetmap.josm.plugins.Splinex.SplineNode;
 import org.openstreetmap.josm.tools.ImageProvider;
 
 import javax.swing.*;
@@ -16,7 +17,7 @@ import static org.openstreetmap.josm.tools.I18n.tr;
 public class DeleteSplineNodeCommand extends Command {
     private final Spline spline;
     int idx;
-    Spline.SNode sn;
+    SplineNode sn;
     boolean wasDeleted;
     boolean affected;
 

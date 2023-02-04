@@ -3,6 +3,7 @@ package org.openstreetmap.josm.plugins.Splinex.importer;
 import org.openstreetmap.josm.data.coor.EastNorth;
 import org.openstreetmap.josm.data.osm.Node;
 import org.openstreetmap.josm.plugins.Splinex.Spline;
+import org.openstreetmap.josm.plugins.Splinex.SplineNode;
 
 import java.util.List;
 
@@ -17,7 +18,7 @@ public class ShemanarevImporter {
             last = size - 1;
         } else {
             last = size - 2;
-            spline.nodes.add(new Spline.SNode(nodes.get(0)));
+            spline.nodes.add(new SplineNode(nodes.get(0)));
         }
         for (int i = 0; i < last; i++) {
             Node n0 = nodes.get(i);
@@ -46,15 +47,15 @@ public class ShemanarevImporter {
             double yprev = -dy * smooth * k1;
             double xnext = dx * smooth * k2;
             double ynext = dy * smooth * k2;
-            Spline.SNode sNode = new Spline.SNode(n1);
-            sNode.cprev = new EastNorth(xprev, yprev);
-            sNode.cnext = new EastNorth(xnext, ynext);
-            spline.nodes.add(sNode);
+            SplineNode splineNode = new SplineNode(n1);
+            splineNode.cprev = new EastNorth(xprev, yprev);
+            splineNode.cnext = new EastNorth(xnext, ynext);
+            spline.nodes.add(splineNode);
         }
         if (closed) {
             spline.nodes.close();
         } else {
-            spline.nodes.add(new Spline.SNode(nodes.get(size - 1)));
+            spline.nodes.add(new SplineNode(nodes.get(size - 1)));
         }
         return spline;
     }

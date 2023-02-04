@@ -225,12 +225,12 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
                     List<Command> cmds = new LinkedList<>();
                     Split.Result result = Split.split(splineHit);
                     Node node = new Node(result.a.pointB);
-                    Spline.SNode sNode = new Spline.SNode(
+                    SplineNode splineNode = new SplineNode(
                         node,
                         result.a.ctrlB.subtract(result.a.pointB),
                         result.b.ctrlA.subtract(result.b.pointA)
                     );
-                    cmds.add(new AddSplineNodeCommand(spl, sNode, false, splineHit.index));
+                    cmds.add(new AddSplineNodeCommand(spl, splineNode, false, splineHit.index));
                     cmds.add(new EditSplineCommand(splineHit.splineNodeA));
                     cmds.add(new EditSplineCommand(splineHit.splineNodeB));
                     UndoRedoHandler.getInstance().add(new InsertSplineNodeCommand(cmds));
@@ -262,7 +262,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
             existing = false;
         }
         int idx = direction == -1 ? 0 : spl.nodeCount();
-        UndoRedoHandler.getInstance().add(new AddSplineNodeCommand(spl, new Spline.SNode(n), existing, idx));
+        UndoRedoHandler.getInstance().add(new AddSplineNodeCommand(spl, new SplineNode(n), existing, idx));
         ph = new PointHandle(spl, idx, direction == -1 ? SplinePoint.CONTROL_PREV : SplinePoint.CONTROL_NEXT);
         lockCounterpart = true;
         MainApplication.getLayerManager().invalidateEditLayer();
