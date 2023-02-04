@@ -30,7 +30,7 @@ public class PointHandle {
     public EastNorth getPoint() {
         EastNorth en = sn.node.getEastNorth();
         switch (point) {
-            case ENDPOINT:
+            case NODE:
                 return en;
             case CONTROL_PREV:
                 return en.add(sn.cprev);
@@ -42,7 +42,7 @@ public class PointHandle {
 
     public void movePoint(EastNorth en) {
         switch (point) {
-            case ENDPOINT:
+            case NODE:
                 sn.node.setEastNorth(en);
                 return;
             case CONTROL_PREV:

@@ -137,7 +137,7 @@ public class Spline {
     }
 
     public enum SplinePoint {
-        ENDPOINT, CONTROL_PREV, CONTROL_NEXT
+        NODE, CONTROL_PREV, CONTROL_NEXT
     }
 
     public PointHandle getNearestPoint(MapView mv, Point2D point) {
