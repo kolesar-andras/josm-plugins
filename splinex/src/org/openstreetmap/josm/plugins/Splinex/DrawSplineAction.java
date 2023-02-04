@@ -1,7 +1,6 @@
 // License: GPL. For details, see LICENSE file.
 package org.openstreetmap.josm.plugins.Splinex;
 
-import static java.lang.Math.pow;
 import static org.openstreetmap.josm.tools.I18n.marktr;
 import static org.openstreetmap.josm.tools.I18n.tr;
 
@@ -350,13 +349,17 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
 
     @Override
     public void paint(Graphics2D graphics2D, MapView mapView, Bounds box) {
-        graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         Spline spl = drawSplineLayerManager.getSpline();
         if (spl == null)
             return;
+        graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         spl.paint(graphics2D, mapView, rubberLineColor, Color.green, helperEndpoint, direction);
         spl.paintProposedNodes(graphics2D, mapView);
-        if (pointHandle != null && (pointHandle.point != SplinePoint.ENDPOINT || (nodeHighlight.isNodeDeleted()))) {
+        paintPointHandle(graphics2D, mapView);
+    }
+
+    protected void paintPointHandle(Graphics2D graphics2D, MapView mapView) {
+        if (pointHandle != null && (pointHandle.point != SplinePoint.ENDPOINT || nodeHighlight.isNodeDeleted())) {
             graphics2D.setColor(MapPaintSettings.INSTANCE.getSelectedColor());
             Point point = mapView.getPoint(pointHandle.getPoint());
             graphics2D.fillRect(point.x - 1, point.y - 1, 3, 3);
