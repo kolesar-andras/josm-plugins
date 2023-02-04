@@ -65,7 +65,7 @@ class DrawSplineHelper {
         splineHit.splineNodeB.cprev = result.b.ctrlB.subtract(result.b.pointB);
     }
 
-    static void dragSpline(SplineHit splineHit, EastNorth en, EastNorth dragReference, boolean keepHandleDirection) {
+    static void dragSpline(SplineHit splineHit, EastNorth delta, boolean keepHandleDirection) {
         double t = splineHit.time;
         double weight;
         if (t <= 1.0 / 6.0) {
@@ -77,7 +77,6 @@ class DrawSplineHelper {
         } else {
             weight = 1;
         }
-        EastNorth delta = en.subtract(dragReference);
         double scale0 = (1-weight)/(3*t*(1-t)*(1-t));
         double scale1 = weight/(3*t*t*(1-t));
         EastNorth offset0 = delta.scale(scale0);
