@@ -127,7 +127,6 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
     protected boolean lockCounterpartLength;
     protected MoveCommand moveCommand;
     protected boolean dragControl;
-    protected boolean dragSpline;
     protected SplineHit splineHit;
 
     @Override
@@ -143,7 +142,6 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
         if (spline == null) return;
         helperEndpoint = null;
         dragControl = false;
-        dragSpline = false;
         mouseDownTime = System.currentTimeMillis();
         pointHandle = spline.getNearestPoint(mapFrame.mapView, e.getPoint());
         clickPos = e.getPoint();
@@ -163,7 +161,6 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
     public void mouseReleased(MouseEvent e) {
         moveCommand = null;
         mouseDownTime = null;
-        dragSpline = false;
         clickPos = null;
         mouseMoved(e);
         if (direction == 0 && pointHandle != null && e.getClickCount() < 2) {
@@ -189,7 +186,8 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
         EastNorth en = mapFrame.mapView.getEastNorth(e.getX(), e.getY());
         if (new Node(en).isOutSideWorld())
             return;
-        if (dragSpline) {
+        Command cmd = UndoRedoHandler.getInstance().getLastCommand();
+        if (cmd instanceof DragSplineCommand) {
             DrawSplineHelper.dragSpline(splineHit, en, dragReference, alt);
             dragReference = en;
             MainApplication.getLayerManager().invalidateEditLayer();
@@ -310,7 +308,6 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
                 DrawSplineHelper.insertSplineNode(spline, splineHit);
             } else {
                 DragSplineCommand.create(splineHit);
-                dragSpline = true;
             }
         }
     }
