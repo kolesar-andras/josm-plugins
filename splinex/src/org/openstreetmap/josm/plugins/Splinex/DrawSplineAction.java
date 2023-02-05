@@ -53,13 +53,16 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
     private final LayerListener layerListener = new LayerListener();
 
     public DrawSplineAction(MapFrame mapFrame) {
-        super(tr("Spline drawing"), // name
-                "spline2", // icon name
-                tr("Draw a spline curve"), // tooltip
-                Shortcut.registerShortcut("mapmode:spline",
-                        tr("Mode: {0}", tr("Spline drawing")),
-                        KeyEvent.VK_L, Shortcut.DIRECT),
-                DrawSplineHelper.getCursor());
+        super(
+            tr("Spline drawing"), // name
+            "spline2", // icon name
+            tr("Draw a spline curve"), // tooltip
+            Shortcut.registerShortcut("mapmode:spline",
+                tr("Mode: {0}", tr("Spline drawing")),
+                KeyEvent.VK_L, Shortcut.DIRECT
+            ),
+            ImageProvider.getCursor("crosshair", "spline")
+        );
 
         layerListener.register();
         this.mapFrame = mapFrame;
@@ -79,7 +82,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
         mapFrame.keyDetector.addModifierExListener(this);
         mapFrame.keyDetector.addKeyListener(this);
         dataSetListener.register();
-        DrawSplineHelper.createSplineFromSelection(layerListener.getSpline());
+        CreateSplineCommand.fromSelection(layerListener.getSpline());
     }
 
     protected Color rubberLineColor;
@@ -225,7 +228,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
 
     protected void handleClickOnPointHandle() {
         if (alt) {
-            DrawSplineHelper.deleteSplineNode(pointHandle);
+            DeleteSplineNodeCommand.deleteSplineNode(pointHandle);
         } else if (pointHandle.role != PointHandle.Role.NODE) {
             commandOnDrag = new MoveSplinePointHandleCommand(pointHandle);
         } else {
@@ -354,7 +357,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
     @Override
     public void doKeyPressed(KeyEvent e) {
         if (e.getKeyCode() == KeyEvent.VK_DELETE && pointHandle != null) {
-            DrawSplineHelper.deleteSplineNode(pointHandle);
+            DeleteSplineNodeCommand.deleteSplineNode(pointHandle);
             e.consume();
         }
         if (e.getKeyCode() == KeyEvent.VK_ESCAPE && direction != Direction.NONE) {

@@ -1,9 +1,11 @@
 package org.openstreetmap.josm.plugins.Splinex.command;
 
 import org.openstreetmap.josm.command.Command;
+import org.openstreetmap.josm.data.UndoRedoHandler;
 import org.openstreetmap.josm.data.osm.DefaultNameFormatter;
 import org.openstreetmap.josm.data.osm.OsmPrimitive;
 import org.openstreetmap.josm.gui.MainApplication;
+import org.openstreetmap.josm.plugins.Splinex.PointHandle;
 import org.openstreetmap.josm.plugins.Splinex.Spline;
 import org.openstreetmap.josm.plugins.Splinex.SplineNode;
 import org.openstreetmap.josm.tools.ImageProvider;
@@ -71,4 +73,13 @@ public class DeleteSplineNodeCommand extends Command {
     public Collection<? extends OsmPrimitive> getParticipatingPrimitives() {
         return affected ? Collections.singleton(sn.node) : super.getParticipatingPrimitives();
     }
+
+    public static void deleteSplineNode(PointHandle pointHandle) {
+        Spline spl = pointHandle.getSpline();
+        if (spl.isClosed() && spl.nodeCount() <= 3)
+            return; // Don't allow to delete node when spline is closed and points are few
+        UndoRedoHandler.getInstance().add(new DeleteSplineNodeCommand(spl, pointHandle.idx));
+        MainApplication.getLayerManager().invalidateEditLayer();
+    }
+
 }
