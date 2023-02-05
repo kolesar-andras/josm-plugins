@@ -199,37 +199,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
         if (spline == null) return;
         Point oldHelperEndpoint = helperEndpoint;
         PointHandle oldPointHandle = pointHandle;
-        boolean redraw = false;
-        pointHandle = spline.getNearestPointHandle(mapFrame.mapView, e.getPoint());
-        if (pointHandle == null)
-            if (!ctrl && spline.doesHit(e.getX(), e.getY(), mapFrame.mapView)) {
-                helperEndpoint = null;
-                mapFrame.mapView.setNewCursor(Cursor.MOVE_CURSOR, this);
-            } else {
-                Node node = null;
-                if (!ctrl)
-                    node = mapFrame.mapView.getNearestNode(e.getPoint(), OsmPrimitive::isUsable);
-                if (node == null) {
-                    redraw = nodeHighlight.unset();
-                    helperEndpoint = e.getPoint();
-                    mapFrame.mapView.setNewCursor(cursor, this);
-                } else {
-                    redraw = nodeHighlight.set(node);
-                    mapFrame.mapView.setNewCursor(cursorJoinNode, this);
-                    helperEndpoint = mapFrame.mapView.getPoint(node);
-                }
-            }
-        else {
-            helperEndpoint = null;
-            mapFrame.mapView.setNewCursor(cursorJoinWay, this);
-            if (pointHandle.role == PointHandle.Role.NODE)
-                redraw = nodeHighlight.set(pointHandle.sn.node);
-            else
-                redraw = nodeHighlight.unset();
-        }
-        if (!drawHelperLine || spline.isClosed() || direction == Direction.NONE)
-            helperEndpoint = null;
-
+        boolean redraw = placeHelperPoint(spline, e.getPoint());
         if (redraw || oldHelperEndpoint != helperEndpoint || (oldPointHandle == null && pointHandle != null)
                 || (oldPointHandle != null && !oldPointHandle.equals(pointHandle)))
             MainApplication.getLayerManager().invalidateEditLayer();
@@ -301,6 +271,41 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
         UndoRedoHandler.getInstance().add(new AddSplineNodeCommand(spline, new SplineNode(node), existing, idx));
         pointHandle = new PointHandle(spline, idx, direction == Direction.BACKWARD ? PointHandle.Role.CONTROL_PREV : PointHandle.Role.CONTROL_NEXT);
         MainApplication.getLayerManager().invalidateEditLayer();
+    }
+
+    protected boolean placeHelperPoint(Spline spline, Point point) {
+        boolean redraw = false;
+        pointHandle = spline.getNearestPointHandle(mapFrame.mapView, point);
+        if (pointHandle == null) {
+            if (!ctrl && spline.doesHit(point.x, point.y, mapFrame.mapView)) {
+                helperEndpoint = null;
+                mapFrame.mapView.setNewCursor(Cursor.MOVE_CURSOR, this);
+            } else {
+                Node node = null;
+                if (!ctrl)
+                    node = mapFrame.mapView.getNearestNode(point, OsmPrimitive::isUsable);
+                if (node == null) {
+                    redraw = nodeHighlight.unset();
+                    helperEndpoint = point;
+                    mapFrame.mapView.setNewCursor(cursor, this);
+                } else {
+                    redraw = nodeHighlight.set(node);
+                    mapFrame.mapView.setNewCursor(cursorJoinNode, this);
+                    helperEndpoint = mapFrame.mapView.getPoint(node);
+                }
+            }
+        } else {
+            helperEndpoint = null;
+            mapFrame.mapView.setNewCursor(cursorJoinWay, this);
+            if (pointHandle.role == PointHandle.Role.NODE)
+                redraw = nodeHighlight.set(pointHandle.sn.node);
+            else
+                redraw = nodeHighlight.unset();
+        }
+        if (!drawHelperLine || spline.isClosed() || direction == Direction.NONE) {
+            helperEndpoint = null;
+        }
+        return redraw;
     }
 
     @Override
