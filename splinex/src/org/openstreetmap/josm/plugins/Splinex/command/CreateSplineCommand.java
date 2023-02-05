@@ -18,26 +18,22 @@ import static org.openstreetmap.josm.tools.I18n.tr;
 public class CreateSplineCommand extends Command {
     private final Spline spline;
     private final NodeList nodes;
-    private final boolean existing;
     private NodeList previous;
 
-    public CreateSplineCommand(Spline spline, NodeList nodes, boolean existing) {
+    public CreateSplineCommand(Spline spline, NodeList nodes) {
         super(getLayerManager().getEditDataSet());
         this.spline = spline;
         this.nodes = nodes;
-        this.existing = existing;
     }
 
     @Override
     public boolean executeCommand() {
         previous = spline.nodes;
         spline.nodes = nodes;
-        if (!existing) {
-            DataSet dataset = getAffectedDataSet();
-            for (SplineNode sn : nodes) {
-                if (!dataset.containsNode(sn.node)) {
-                    dataset.addPrimitive(sn.node);
-                }
+        DataSet dataset = getAffectedDataSet();
+        for (SplineNode sn : nodes) {
+            if (!dataset.containsNode(sn.node)) {
+                dataset.addPrimitive(sn.node);
             }
         }
         return true;
@@ -65,7 +61,7 @@ public class CreateSplineCommand extends Command {
         if (way == null) return;
         if (way.getNodesCount() < 3) return;
         Spline spline = SchneiderImporter.fromNodes(way.getNodes(), 0.5, way.isClosed());
-        UndoRedoHandler.getInstance().add(new CreateSplineCommand(target, spline.nodes, false));
+        UndoRedoHandler.getInstance().add(new CreateSplineCommand(target, spline.nodes));
     }
 
 }
