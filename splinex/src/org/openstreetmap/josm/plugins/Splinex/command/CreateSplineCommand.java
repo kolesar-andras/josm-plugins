@@ -13,6 +13,7 @@ import org.openstreetmap.josm.plugins.Splinex.importer.SchneiderImporter;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.openstreetmap.josm.gui.MainApplication.getLayerManager;
 import static org.openstreetmap.josm.tools.I18n.tr;
@@ -51,7 +52,7 @@ public class CreateSplineCommand extends SequenceCommand {
         Spline spline = SchneiderImporter.fromNodes(way.getNodes(), 0.5, way.isClosed());
         List<Command> cmds = new LinkedList<>();
         DataSet dataset = getLayerManager().getEditDataSet();
-        for (SplineNode sn : spline.nodes) {
+        for (SplineNode sn : spline.nodes.stream().distinct().collect(Collectors.toList())) {
             if (!dataset.containsNode(sn.node)) {
                 cmds.add(new AddCommand(dataset, sn.node));
             }
