@@ -195,14 +195,9 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
     public void mouseMoved(MouseEvent e) {
         updateKeyModifiers(e);
         if (!mapFrame.mapView.isActiveLayerDrawable()) return;
-        Spline spline = layerListener.getSpline();
-        if (spline == null) return;
-        Point oldHelperEndpoint = helperEndpoint;
-        PointHandle oldPointHandle = pointHandle;
-        boolean redraw = placeHelperPoint(spline, e.getPoint());
-        if (redraw || oldHelperEndpoint != helperEndpoint || (oldPointHandle == null && pointHandle != null)
-                || (oldPointHandle != null && !oldPointHandle.equals(pointHandle)))
+        if (placeHelperEndpoint(e.getPoint())) {
             MainApplication.getLayerManager().invalidateEditLayer();
+        }
     }
 
     /**
@@ -273,8 +268,12 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
         MainApplication.getLayerManager().invalidateEditLayer();
     }
 
-    protected boolean placeHelperPoint(Spline spline, Point point) {
+    protected boolean placeHelperEndpoint(Point point) {
+        Spline spline = layerListener.getSpline();
+        if (spline == null) return false;
         boolean redraw = false;
+        Point oldHelperEndpoint = helperEndpoint;
+        PointHandle oldPointHandle = pointHandle;
         pointHandle = spline.getNearestPointHandle(mapFrame.mapView, point);
         if (pointHandle == null) {
             if (!ctrl && spline.doesHit(point.x, point.y, mapFrame.mapView)) {
@@ -304,6 +303,12 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
         }
         if (!drawHelperLine || spline.isClosed() || direction == Direction.NONE) {
             helperEndpoint = null;
+        }
+        if (oldHelperEndpoint != helperEndpoint ||
+            (oldPointHandle == null && pointHandle != null) ||
+            (oldPointHandle != null && !oldPointHandle.equals(pointHandle))
+        ) {
+            redraw = true;
         }
         return redraw;
     }
