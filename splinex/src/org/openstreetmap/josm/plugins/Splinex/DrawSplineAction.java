@@ -139,14 +139,14 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
         mouseDownTime = System.currentTimeMillis();
         mouseDownPoint = e.getPoint();
         pointHandle = spline.getNearestPointHandle(mapFrame.mapView, mouseDownPoint);
-        if (e.getClickCount() == 2) {
-            handleDoubleClick(spline);
-        } else if (pointHandle != null) {
-            handleClickOnPointHandle();
-        } else if (spline.doesHit(e.getX(), e.getY(), mapFrame.mapView)) {
-            handleClickOnSpline(spline, e);
-        } else {
+        if (!spline.doesHit(e.getX(), e.getY(), mapFrame.mapView)) {
             handleClickOutsideSpline(spline, e);
+        } else if (e.getClickCount() == 2) {
+            handleDoubleClick(spline);
+        } if (pointHandle != null) {
+            handleClickOnPointHandle();
+        } else {
+            handleClickOnSpline(spline, e);
         }
     }
 
@@ -218,6 +218,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
     }
 
     protected void handleDoubleClick(Spline spline) {
+        if (pointHandle != null && pointHandle.role != PointHandle.Role.NODE) return;
         if (spline.isCloseable(pointHandle, direction)) {
             spline.close();
         } else {
