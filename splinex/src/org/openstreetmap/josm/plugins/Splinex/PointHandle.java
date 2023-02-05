@@ -13,14 +13,14 @@ public class PointHandle {
     public PointHandle(Spline spline, int idx, Role role) {
         this.spline = spline;
         if (role == null)
-            throw new IllegalArgumentException("Invalid SegmentPoint passed for PointHandle contructor");
+            throw new IllegalArgumentException("Invalid role passed for PointHandle constructor");
         this.idx = idx;
         this.sn = spline.nodes.get(idx);
         this.role = role;
     }
 
-    public PointHandle otherPoint(Role point) {
-        return new PointHandle(spline, idx, point);
+    public PointHandle otherPoint(Role role) {
+        return new PointHandle(spline, idx, role);
     }
 
     public Spline getSpline() {
