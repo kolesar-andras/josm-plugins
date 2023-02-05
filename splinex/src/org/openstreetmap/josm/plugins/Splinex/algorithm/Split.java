@@ -16,11 +16,11 @@ public class Split {
         }
     }
 
-        public static Result split(SplineHit splineHit) {
-            return split(new BezierDef(splineHit), splineHit.time);
-        }
+    public static Result split(SplineHit splineHit) {
+        return split(new BezierDef(splineHit), splineHit.time);
+    }
 
-        public static Result split(BezierDef bezierDef, double t) {
+    public static Result split(BezierDef bezierDef, double t) {
         EastNorth p0 = bezierDef.pointA;
         EastNorth p1 = bezierDef.ctrlA;
         EastNorth p2 = bezierDef.ctrlB;
