@@ -227,7 +227,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
     }
 
     protected void handleClickOnPointHandle() {
-        if (alt) {
+        if (alt && pointHandle.role == PointHandle.Role.NODE) {
             DeleteSplineNodeCommand.deleteSplineNode(pointHandle);
         } else if (pointHandle.role != PointHandle.Role.NODE) {
             commandOnDrag = new MoveSplinePointHandleCommand(pointHandle, ctrl);
