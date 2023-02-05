@@ -124,7 +124,6 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
 
     @Override
     public void mousePressed(MouseEvent e) {
-        mouseDownTime = null;
         updateKeyModifiers(e);
         if (e.getButton() != MouseEvent.BUTTON1) {
             helperEndpoint = null; // Hide helper line when panning
@@ -135,8 +134,8 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
         if (spline == null) return;
         helperEndpoint = null;
         mouseDownTime = System.currentTimeMillis();
-        pointHandle = spline.getNearestPointHandle(mapFrame.mapView, e.getPoint());
         mouseDownPoint = e.getPoint();
+        pointHandle = spline.getNearestPointHandle(mapFrame.mapView, mouseDownPoint);
         if (e.getClickCount() == 2) {
             handleDoubleClick(spline);
         } else if (pointHandle != null) {
