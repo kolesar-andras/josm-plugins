@@ -1,9 +1,7 @@
 package org.openstreetmap.josm.plugins.Splinex.command;
 
-import org.openstreetmap.josm.command.Command;
 import org.openstreetmap.josm.data.coor.EastNorth;
 import org.openstreetmap.josm.data.osm.OsmPrimitive;
-import org.openstreetmap.josm.gui.MainApplication;
 import org.openstreetmap.josm.plugins.Splinex.PointHandle;
 
 import java.awt.event.MouseEvent;
@@ -11,14 +9,14 @@ import java.util.Collection;
 
 import static org.openstreetmap.josm.tools.I18n.tr;
 
-public class MoveSplinePointHandleCommand extends Command implements DragCommand {
+public class MoveSplinePointHandleCommand extends EditSplineCommand implements DragCommand {
 
     protected PointHandle pointHandle;
     protected boolean lockCounterpart;
     protected boolean lockCounterpartLength;
 
     public MoveSplinePointHandleCommand(PointHandle pointHandle) {
-        super(MainApplication.getLayerManager().getEditDataSet());
+        super(pointHandle.sn);
         this.pointHandle = pointHandle;
         lockCounterpart =
             // TODO handle turnover at north
