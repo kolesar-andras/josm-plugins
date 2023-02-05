@@ -33,7 +33,7 @@ public class MoveSplinePointHandleCommand extends EditSplineCommand implements D
     @Override
     public void dragTo(EastNorth en, MouseEvent e) {
         pointHandle.movePoint(en);
-        if (lockCounterpart) {
+        if (lockCounterpart || e.isShiftDown()) {
             pointHandle.moveCounterpart(lockCounterpartLength);
         }
     }
