@@ -6,7 +6,6 @@ import org.openstreetmap.josm.gui.layer.LayerManager.LayerOrderChangeEvent;
 import org.openstreetmap.josm.gui.layer.LayerManager.LayerRemoveEvent;
 import org.openstreetmap.josm.gui.layer.MainLayerManager.ActiveLayerChangeEvent;
 import org.openstreetmap.josm.gui.layer.MainLayerManager.ActiveLayerChangeListener;
-import org.openstreetmap.josm.gui.layer.OsmDataLayer;
 import org.openstreetmap.josm.gui.layer.LayerManager.LayerChangeListener;
 import org.openstreetmap.josm.plugins.Splinex.Spline;
 
@@ -28,13 +27,13 @@ public class LayerListener implements LayerChangeListener, ActiveLayerChangeList
     public Spline getSpline() {
         if (splCached != null)
             return splCached;
-        Layer l = getLayerManager().getEditLayer();
-        if (!(l instanceof OsmDataLayer))
+        Layer layer = getLayerManager().getEditLayer();
+        if (layer == null)
             return null;
-        splCached = layerSplines.get(l);
+        splCached = layerSplines.get(layer);
         if (splCached == null)
             splCached = new Spline();
-        layerSplines.put(l, splCached);
+        layerSplines.put(layer, splCached);
         return splCached;
     }
 
