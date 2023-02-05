@@ -227,12 +227,12 @@ public class Spline {
     }
 
     public boolean isCloseable(PointHandle pointHandle, Direction direction) {
-        return isClosed() &&
+        return !isClosed() &&
             nodeCount() > 1 &&
             pointHandle != null && pointHandle.role == PointHandle.Role.NODE && (
-            (pointHandle.idx == 0 && direction == Direction.FORWARD) ||
+                (pointHandle.idx == 0 && direction == Direction.FORWARD) ||
                 (pointHandle.idx == nodeCount() - 1 && direction == Direction.BACKWARD)
-        );
+            );
     }
 
     public void close() {
