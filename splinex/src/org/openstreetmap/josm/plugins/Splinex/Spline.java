@@ -27,8 +27,8 @@ import org.openstreetmap.josm.gui.MainApplication;
 import org.openstreetmap.josm.gui.MapView;
 import org.openstreetmap.josm.gui.NavigatableComponent;
 import org.openstreetmap.josm.plugins.Splinex.algorithm.SplineHitCheck;
-import org.openstreetmap.josm.plugins.Splinex.command.FinishSplineCommand;
-import org.openstreetmap.josm.plugins.Splinex.command.UndeleteNodeCommand;
+import org.openstreetmap.josm.plugins.Splinex.algorithm.Split;
+import org.openstreetmap.josm.plugins.Splinex.command.*;
 import org.openstreetmap.josm.plugins.Splinex.exporter.CubicBezier;
 
 public class Spline {
@@ -185,7 +185,7 @@ public class Spline {
         return Optional.empty();
     }
 
-    public void finishSpline() {
+    public void finish() {
         if (nodes.isEmpty())
             return;
         int detail = PROP_SPLINEPOINTS.get();
@@ -225,12 +225,42 @@ public class Spline {
         }
     }
 
+    public boolean isCloseable(PointHandle pointHandle, int direction) {
+        return isClosed() &&
+            nodeCount() > 1 &&
+            pointHandle != null && pointHandle.role == PointHandle.Role.NODE && (
+            (pointHandle.idx == 0 && direction == 1) ||
+                (pointHandle.idx == nodeCount() - 1 && direction == -1)
+        );
+    }
+
+    public void close() {
+        UndoRedoHandler.getInstance().add(new CloseSplineCommand(this));
+    }
+
     public List<OsmPrimitive> getNodes() {
         ArrayList<OsmPrimitive> result = new ArrayList<>(nodes.size());
         for (SplineNode sn : nodes) {
             result.add(sn.node);
         }
         return result;
+    }
+
+    void insertNode(SplineHit splineHit) {
+        List<Command> cmds = new LinkedList<>();
+        Split.Result result = Split.split(splineHit);
+        Node node = new Node(result.a.pointB);
+        SplineNode splineNode = new SplineNode(
+            node,
+            result.a.ctrlB.subtract(result.a.pointB),
+            result.b.ctrlA.subtract(result.b.pointA)
+        );
+        cmds.add(new AddSplineNodeCommand(this, splineNode, false, splineHit.index));
+        cmds.add(new EditSplineCommand(splineHit.splineNodeA));
+        cmds.add(new EditSplineCommand(splineHit.splineNodeB));
+        UndoRedoHandler.getInstance().add(new InsertSplineNodeCommand(cmds));
+        splineHit.splineNodeA.cnext = result.a.ctrlA.subtract(result.a.pointA);
+        splineHit.splineNodeB.cprev = result.b.ctrlB.subtract(result.b.pointB);
     }
 
 }
