@@ -38,6 +38,11 @@ public class LayerListener implements LayerChangeListener, ActiveLayerChangeList
         return splCached;
     }
 
+    public boolean hasActiveSpline() {
+        Spline spline = getSpline();
+        return spline != null && !spline.isEmpty();
+    }
+
     @Override
     public void activeOrEditLayerChanged(ActiveLayerChangeEvent e) {
         splCached = layerSplines.get(getLayerManager().getActiveLayer());

@@ -117,9 +117,9 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
     }
 
     protected Long mouseDownTime;
+    protected Point mouseDownPoint;
     protected PointHandle pointHandle;
     protected Point helperEndpoint;
-    protected Point clickPos;
     protected DragCommand commandOnDrag;
 
     @Override
@@ -136,7 +136,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
         helperEndpoint = null;
         mouseDownTime = System.currentTimeMillis();
         pointHandle = spline.getNearestPointHandle(mapFrame.mapView, e.getPoint());
-        clickPos = e.getPoint();
+        mouseDownPoint = e.getPoint();
         if (e.getClickCount() == 2) {
             handleDoubleClick(spline);
         } else if (pointHandle != null) {
@@ -157,7 +157,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
     @Override
     public void mouseReleased(MouseEvent e) {
         mouseDownTime = null;
-        clickPos = null;
+        mouseDownPoint = null;
         mouseMoved(e);
         if (direction == Direction.NONE && pointHandle != null && e.getClickCount() < 2) {
             if (pointHandle.idx >= pointHandle.getSpline().nodeCount() - 1)
@@ -170,13 +170,9 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
     @Override
     public void mouseDragged(MouseEvent e) {
         updateKeyModifiers(e);
-        if (mouseDownTime == null) return;
+        if (!isEnoughTimeAndMovement(e.getPoint())) return;
         if (!mapFrame.mapView.isActiveLayerDrawable()) return;
-        if (System.currentTimeMillis() - mouseDownTime < initialMoveDelay) return;
-        Spline spline = layerListener.getSpline();
-        if (spline == null || spline.isEmpty()) return;
-        if (clickPos != null && clickPos.distanceSq(e.getPoint()) < initialMoveThreshold) return;
-        clickPos = null;
+        if (!layerListener.hasActiveSpline()) return;
         EastNorth en = mapFrame.mapView.getEastNorth(e.getX(), e.getY());
         if (new Node(en).isOutSideWorld()) return;
         if (commandOnDrag != null) {
@@ -211,6 +207,14 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
         MainApplication.getLayerManager().invalidateEditLayer();
     }
 
+    protected boolean isEnoughTimeAndMovement(Point point) {
+        if (mouseDownTime == null) return false;
+        if (System.currentTimeMillis() - mouseDownTime < initialMoveDelay) return false;
+        if (mouseDownPoint != null && mouseDownPoint.distanceSq(point) < initialMoveThreshold) return false;
+        mouseDownPoint = null;
+        return true;
+    }
+
     protected void handleDoubleClick(Spline spline) {
         if (spline.isCloseable(pointHandle, direction)) {
             spline.close();
@@ -237,7 +241,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
             if (ctrl) {
                 spline.insertNode(splineHit);
             } else {
-                EastNorth dragReference = mapFrame.mapView.getEastNorth(clickPos.x, clickPos.y);
+                EastNorth dragReference = mapFrame.mapView.getEastNorth(e.getX(), e.getY());
                 commandOnDrag = DragSplineCommand.create(splineHit, dragReference);
             }
         }
