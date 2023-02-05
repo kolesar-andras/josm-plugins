@@ -148,18 +148,22 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
         }
     }
 
-    protected short direction;
+    enum Direction {
+        NONE, FORWARD, BACKWARD
+    }
+
+    protected Direction direction;
 
     @Override
     public void mouseReleased(MouseEvent e) {
         mouseDownTime = null;
         clickPos = null;
         mouseMoved(e);
-        if (direction == 0 && pointHandle != null && e.getClickCount() < 2) {
+        if (direction == Direction.NONE && pointHandle != null && e.getClickCount() < 2) {
             if (pointHandle.idx >= pointHandle.getSpline().nodeCount() - 1)
-                direction = 1;
+                direction = Direction.FORWARD;
             else if (pointHandle.idx == 0)
-                direction = -1;
+                direction = Direction.BACKWARD;
         }
     }
 
@@ -223,7 +227,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
             else
                 redraw = nodeHighlight.unset();
         }
-        if (!drawHelperLine || spline.isClosed() || direction == 0)
+        if (!drawHelperLine || spline.isClosed() || direction == Direction.NONE)
             helperEndpoint = null;
 
         if (redraw || oldHelperEndpoint != helperEndpoint || (oldPointHandle == null && pointHandle != null)
@@ -248,7 +252,7 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
         } else {
             spline.finish();
         }
-        direction = 0;
+        direction = Direction.NONE;
     }
 
     protected void handleClickOnPointHandle() {
@@ -276,9 +280,9 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
 
     protected void handleClickOutsideSpline(Spline spline, MouseEvent e) {
         if (spline.isClosed()) return;
-        if (direction == 0) {
+        if (direction == Direction.NONE) {
             if (spline.nodeCount() < 2) {
-                direction = 1;
+                direction = Direction.FORWARD;
             } else {
                 return;
             }
@@ -293,9 +297,9 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
             node = new Node(mapFrame.mapView.getLatLon(e.getX(), e.getY()));
             existing = false;
         }
-        int idx = direction == -1 ? 0 : spline.nodeCount();
+        int idx = direction == Direction.BACKWARD ? 0 : spline.nodeCount();
         UndoRedoHandler.getInstance().add(new AddSplineNodeCommand(spline, new SplineNode(node), existing, idx));
-        pointHandle = new PointHandle(spline, idx, direction == -1 ? PointHandle.Role.CONTROL_PREV : PointHandle.Role.CONTROL_NEXT);
+        pointHandle = new PointHandle(spline, idx, direction == Direction.BACKWARD ? PointHandle.Role.CONTROL_PREV : PointHandle.Role.CONTROL_NEXT);
         MainApplication.getLayerManager().invalidateEditLayer();
     }
 
@@ -340,8 +344,8 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
             DrawSplineHelper.deleteSplineNode(pointHandle);
             e.consume();
         }
-        if (e.getKeyCode() == KeyEvent.VK_ESCAPE && direction != 0) {
-            direction = 0;
+        if (e.getKeyCode() == KeyEvent.VK_ESCAPE && direction != Direction.NONE) {
+            direction = Direction.NONE;
             MainApplication.getLayerManager().invalidateEditLayer();
             e.consume();
         }

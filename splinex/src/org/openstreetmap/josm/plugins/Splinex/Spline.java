@@ -26,6 +26,7 @@ import org.openstreetmap.josm.data.projection.ProjectionRegistry;
 import org.openstreetmap.josm.gui.MainApplication;
 import org.openstreetmap.josm.gui.MapView;
 import org.openstreetmap.josm.gui.NavigatableComponent;
+import org.openstreetmap.josm.plugins.Splinex.DrawSplineAction.Direction;
 import org.openstreetmap.josm.plugins.Splinex.algorithm.SplineHitCheck;
 import org.openstreetmap.josm.plugins.Splinex.algorithm.Split;
 import org.openstreetmap.josm.plugins.Splinex.command.*;
@@ -60,14 +61,14 @@ public class Spline {
         return nodes.isClosed();
     }
 
-    public void paint(Graphics2D g, MapView mv, Color curveColor, Color ctlColor, Point helperEndpoint, short direction) {
+    public void paint(Graphics2D g, MapView mv, Color curveColor, Color ctlColor, Point helperEndpoint, Direction direction) {
         if (nodes.isEmpty())
             return;
         final GeneralPath curv = new GeneralPath();
         final GeneralPath ctl = new GeneralPath();
 
         Point2D cbPrev = null;
-        if (helperEndpoint != null && direction == -1) {
+        if (helperEndpoint != null && direction == Direction.BACKWARD) {
             cbPrev = new Point2D.Double(helperEndpoint.x, helperEndpoint.y);
             curv.moveTo(helperEndpoint.x, helperEndpoint.y);
         }
@@ -90,7 +91,7 @@ public class Spline {
                 curv.curveTo(cbPrev.getX(), cbPrev.getY(), ca.getX(), ca.getY(), pt.getX(), pt.getY());
             cbPrev = cb;
         }
-        if (helperEndpoint != null && direction == 1) {
+        if (helperEndpoint != null && direction == Direction.FORWARD) {
             curv.curveTo(cbPrev.getX(), cbPrev.getY(), helperEndpoint.getX(), helperEndpoint.getY(),
                     helperEndpoint.getX(), helperEndpoint.getY());
         }
@@ -225,12 +226,12 @@ public class Spline {
         }
     }
 
-    public boolean isCloseable(PointHandle pointHandle, int direction) {
+    public boolean isCloseable(PointHandle pointHandle, Direction direction) {
         return isClosed() &&
             nodeCount() > 1 &&
             pointHandle != null && pointHandle.role == PointHandle.Role.NODE && (
-            (pointHandle.idx == 0 && direction == 1) ||
-                (pointHandle.idx == nodeCount() - 1 && direction == -1)
+            (pointHandle.idx == 0 && direction == Direction.FORWARD) ||
+                (pointHandle.idx == nodeCount() - 1 && direction == Direction.BACKWARD)
         );
     }
 
