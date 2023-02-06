@@ -50,7 +50,7 @@ public class CreateSplineCommand extends SequenceCommand {
         Way way = ds.getLastSelectedWay();
         if (way == null) return;
         if (way.getNodesCount() < 3) return;
-        Spline spline = importer.fromNodes(way.getNodes(), way.isClosed());
+        Spline spline = importer.fromNodes(way);
         List<Command> cmds = new LinkedList<>();
         DataSet dataset = getLayerManager().getEditDataSet();
         for (SplineNode sn : spline.nodes.stream().distinct().collect(Collectors.toList())) {

@@ -4,6 +4,7 @@ import org.jhotdraw.geom.Bezier;
 import org.jhotdraw.geom.BezierPath;
 import org.openstreetmap.josm.data.coor.EastNorth;
 import org.openstreetmap.josm.data.osm.Node;
+import org.openstreetmap.josm.data.osm.Way;
 import org.openstreetmap.josm.plugins.Splinex.Spline;
 import org.openstreetmap.josm.plugins.Splinex.SplineNode;
 
@@ -14,10 +15,10 @@ import java.util.List;
 public class SchneiderImporter implements Importer {
     public double error = 1.0;
 
-    public Spline fromNodes(List<Node> nodes, boolean closed) {
+    public Spline fromNodes(Way way) {
         Spline spline = new Spline();
         List<Point2D.Double> points = new ArrayList<>();
-        for (Node node : nodes) {
+        for (Node node : way.getNodes()) {
             EastNorth eastNorth = node.getEastNorth();
             points.add(new Point2D.Double(eastNorth.getX(), eastNorth.getY()));
         }
@@ -35,11 +36,12 @@ public class SchneiderImporter implements Importer {
                 )
             );
         }
-        if (closed) {
+        if (way.isClosed()) {
             spline.nodes.getFirst().cprev = spline.nodes.getLast().cprev;
             spline.nodes.remove(spline.nodes.size() - 1);
             spline.nodes.close();
         }
+        spline.way = way;
         return spline;
     }
 }

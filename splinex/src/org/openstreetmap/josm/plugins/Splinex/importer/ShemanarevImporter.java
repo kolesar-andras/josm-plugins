@@ -2,6 +2,7 @@ package org.openstreetmap.josm.plugins.Splinex.importer;
 
 import org.openstreetmap.josm.data.coor.EastNorth;
 import org.openstreetmap.josm.data.osm.Node;
+import org.openstreetmap.josm.data.osm.Way;
 import org.openstreetmap.josm.plugins.Splinex.Spline;
 import org.openstreetmap.josm.plugins.Splinex.SplineNode;
 
@@ -12,11 +13,12 @@ import static java.lang.Math.sqrt;
 public class ShemanarevImporter implements Importer {
     public double smooth = 0.5;
 
-    public Spline fromNodes(List<Node> nodes, boolean closed) {
+    public Spline fromNodes(Way way) {
         Spline spline = new Spline();
+        List<Node> nodes = way.getNodes();
         int size = nodes.size();
         int last;
-        if (closed) {
+        if (way.isClosed()) {
             last = size - 1;
         } else {
             last = size - 2;
@@ -54,11 +56,12 @@ public class ShemanarevImporter implements Importer {
             splineNode.cnext = new EastNorth(xnext, ynext);
             spline.nodes.add(splineNode);
         }
-        if (closed) {
+        if (way.isClosed()) {
             spline.nodes.close();
         } else {
             spline.nodes.add(new SplineNode(nodes.get(size - 1)));
         }
+        spline.way = way;
         return spline;
     }
 }
