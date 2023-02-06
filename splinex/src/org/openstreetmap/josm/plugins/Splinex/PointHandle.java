@@ -23,6 +23,17 @@ public class PointHandle {
         return new PointHandle(spline, idx, role);
     }
 
+    public PointHandle getControlHandle() {
+        if (!spline.isClosed()) {
+            if (spline.nodes.getFirst() == sn) {
+                return getHandleOfRole(Role.CONTROL_PREV);
+            } else if (spline.nodes.getLast() == sn) {
+                return getHandleOfRole(Role.CONTROL_NEXT);
+            }
+        }
+        return getRetractedHandle();
+    }
+
     public PointHandle getRetractedHandle() {
         if (sn.cnext.length() == 0.0) {
             return getHandleOfRole(Role.CONTROL_NEXT);
@@ -73,8 +84,9 @@ public class PointHandle {
             case CONTROL_NEXT:
                 sn.cnext = EastNorth.ZERO;
                 return;
+            default:
+                throw new AssertionError();
         }
-        throw new AssertionError();
     }
 
     public void moveCounterpart(boolean lockLength) {

@@ -228,7 +228,7 @@ public class DrawSplineAction extends MapMode implements KeyPressReleaseListener
         } else if (pointHandle.role != PointHandle.Role.NODE) {
             commandOnDrag = new MoveSplinePointHandleCommand(pointHandle, ctrl);
         } else if (ctrl) {
-            pointHandle = pointHandle.getRetractedHandle();
+            pointHandle = pointHandle.getControlHandle();
             if (pointHandle != null) commandOnDrag = new MoveSplinePointHandleCommand(pointHandle, false);
         } else {
             commandOnDrag = new MoveSplineNodeCommand(pointHandle.sn.node);
