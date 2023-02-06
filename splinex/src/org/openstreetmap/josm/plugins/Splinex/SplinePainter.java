@@ -111,7 +111,10 @@ public class SplinePainter implements MapViewPaintable {
     }
 
     protected void paintPointHandle(Graphics2D graphics2D, MapView mapView) {
-        if (drawSplineAction.pointHandle != null && (drawSplineAction.pointHandle.role != PointHandle.Role.NODE || drawSplineAction.nodeHighlight.isNodeDeleted())) {
+        if (drawSplineAction.pointHandle != null && (
+                drawSplineAction.pointHandle.role != PointHandle.Role.NODE ||
+                drawSplineAction.nodeHighlight.isDeleted()
+        )) {
             graphics2D.setColor(MapPaintSettings.INSTANCE.getSelectedColor());
             Point point = mapView.getPoint(drawSplineAction.pointHandle.getPoint());
             graphics2D.fillRect(point.x - 1, point.y - 1, 3, 3);

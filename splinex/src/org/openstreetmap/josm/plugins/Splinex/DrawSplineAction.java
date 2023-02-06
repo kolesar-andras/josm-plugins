@@ -5,8 +5,10 @@ import org.openstreetmap.josm.actions.mapmode.MapMode;
 import org.openstreetmap.josm.command.Command;
 import org.openstreetmap.josm.data.UndoRedoHandler;
 import org.openstreetmap.josm.data.coor.EastNorth;
+import org.openstreetmap.josm.data.osm.DataSet;
 import org.openstreetmap.josm.data.osm.Node;
 import org.openstreetmap.josm.data.osm.OsmPrimitive;
+import org.openstreetmap.josm.data.osm.Way;
 import org.openstreetmap.josm.data.preferences.NamedColorProperty;
 import org.openstreetmap.josm.gui.MainApplication;
 import org.openstreetmap.josm.gui.MapFrame;
@@ -43,7 +45,8 @@ public class DrawSplineAction extends MapMode implements KeyPressReleaseListener
     private final BackSpaceAction backspaceAction = new BackSpaceAction();
 
     protected final MapFrame mapFrame;
-    protected final NodeHighlight nodeHighlight = new NodeHighlight();
+    protected final Highlight<Node> nodeHighlight = new Highlight<>();
+    protected final Highlight<Way> wayHighlight = new Highlight<>();
     protected final DatasetListener dataSetListener = new DatasetListener();
     protected final LayerListener layerListener = new LayerListener();
 
@@ -127,6 +130,7 @@ public class DrawSplineAction extends MapMode implements KeyPressReleaseListener
             return;
         }
         if (!mapFrame.mapView.isActiveLayerDrawable()) return;
+        if (updateSelection()) return;
         Spline spline = layerListener.getSpline();
         if (spline == null) return;
         helperEndpoint = null;
@@ -185,7 +189,10 @@ public class DrawSplineAction extends MapMode implements KeyPressReleaseListener
     public void mouseMoved(MouseEvent e) {
         updateKeyModifiers(e);
         if (!mapFrame.mapView.isActiveLayerDrawable()) return;
-        if (placeHelperEndpoint(e.getPoint())) {
+        Point point = e.getPoint();
+        boolean redraw = placeHelperEndpoint(point);
+        redraw |= highlightWay(point, helperEndpoint != null);
+        if (redraw) {
             MainApplication.getLayerManager().invalidateEditLayer();
         }
     }
@@ -199,6 +206,22 @@ public class DrawSplineAction extends MapMode implements KeyPressReleaseListener
         nodeHighlight.unset();
         helperEndpoint = null;
         MainApplication.getLayerManager().invalidateEditLayer();
+    }
+
+    protected boolean updateSelection() {
+        DataSet dataSet = getLayerManager().getEditDataSet();
+        if (!nodeHighlight.isActive() && wayHighlight.isActive()) {
+            if (shift) {
+                dataSet.addSelected(wayHighlight.get());
+            } else if (ctrl) {
+                dataSet.toggleSelected(wayHighlight.get());
+            } else {
+                dataSet.setSelected(wayHighlight.get());
+            }
+            return true;
+        }
+        dataSet.clearSelection();
+        return false;
     }
 
     protected boolean isEnoughTimeAndMovement(Point point) {
@@ -315,6 +338,15 @@ public class DrawSplineAction extends MapMode implements KeyPressReleaseListener
             redraw = true;
         }
         return redraw;
+    }
+
+    protected boolean highlightWay(Point point, boolean disabled) {
+        Way way = disabled ? null : mapFrame.mapView.getNearestWay(point, OsmPrimitive::isSelectable);
+        if (way == null) {
+            return wayHighlight.unset();
+        } else {
+            return wayHighlight.set(way);
+        }
     }
 
     @Override
