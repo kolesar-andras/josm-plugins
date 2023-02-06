@@ -133,12 +133,12 @@ public class DrawSplineAction extends MapMode implements KeyPressReleaseListener
         mouseDownTime = System.currentTimeMillis();
         mouseDownPoint = e.getPoint();
         pointHandle = spline.getNearestPointHandle(mapFrame.mapView, mouseDownPoint);
-        if (!spline.doesHit(e.getX(), e.getY(), mapFrame.mapView)) {
+        if (pointHandle != null && e.getClickCount() != 2) {
+            handleClickOnPointHandle();
+        } else if (!spline.doesHit(e.getX(), e.getY(), mapFrame.mapView)) {
             handleClickOutsideSpline(spline, e);
         } else if (e.getClickCount() == 2) {
             handleDoubleClick(spline);
-        } else if (pointHandle != null) {
-            handleClickOnPointHandle();
         } else {
             handleClickOnSpline(spline, e);
         }
