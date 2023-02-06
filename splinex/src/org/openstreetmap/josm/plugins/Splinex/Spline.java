@@ -111,13 +111,13 @@ public class Spline {
         if (nodes.isEmpty())
             return;
         int detail = PROP_SPLINEPOINTS.get();
-        Way w = new Way();
+        Way way = new Way();
         List<Command> cmds = new LinkedList<>();
         Iterator<SplineNode> it = nodes.iterator();
         SplineNode sn = it.next();
         if (sn.node.isDeleted())
             cmds.add(new UndeleteNodeCommand(sn.node));
-        w.addNode(sn.node);
+        way.addNode(sn.node);
         EastNorth a = sn.node.getEastNorth();
         EastNorth ca = a.add(sn.cnext);
         DataSet ds = MainApplication.getLayerManager().getEditDataSet();
@@ -129,20 +129,20 @@ public class Spline {
             EastNorth cb = b.add(sn.cprev);
             if (!a.equalsEpsilon(ca, EPSILON) || !b.equalsEpsilon(cb, EPSILON))
                 for (EastNorth eastNorth : CubicBezier.calculatePoints(a, ca, cb, b, detail)) {
-                    Node n = new Node(ProjectionRegistry.getProjection().eastNorth2latlon(eastNorth));
-                    if (n.isOutSideWorld()) {
+                    Node node = new Node(ProjectionRegistry.getProjection().eastNorth2latlon(eastNorth));
+                    if (node.isOutSideWorld()) {
                         JOptionPane.showMessageDialog(MainApplication.getMainFrame(), tr("Spline goes outside of the world."));
                         return;
                     }
-                    cmds.add(new AddCommand(ds, n));
-                    w.addNode(n);
+                    cmds.add(new AddCommand(ds, node));
+                    way.addNode(node);
                 }
-            w.addNode(sn.node);
+            way.addNode(sn.node);
             a = b;
             ca = a.add(sn.cnext);
         }
-        if (!cmds.isEmpty()) {
-            cmds.add(new AddCommand(ds, w));
+        if (!way.isEmpty()) {
+            cmds.add(new AddCommand(ds, way));
             UndoRedoHandler.getInstance().add(new FinishSplineCommand(this, cmds));
         }
     }

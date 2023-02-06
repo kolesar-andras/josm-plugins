@@ -137,7 +137,7 @@ public class DrawSplineAction extends MapMode implements KeyPressReleaseListener
             handleClickOutsideSpline(spline, e);
         } else if (e.getClickCount() == 2) {
             handleDoubleClick(spline);
-        } if (pointHandle != null) {
+        } else if (pointHandle != null) {
             handleClickOnPointHandle();
         } else {
             handleClickOnSpline(spline, e);
