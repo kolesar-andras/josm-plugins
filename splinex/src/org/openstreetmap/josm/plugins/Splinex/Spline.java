@@ -1,33 +1,26 @@
 // License: GPL. For details, see LICENSE file.
 package org.openstreetmap.josm.plugins.Splinex;
 
-import static org.openstreetmap.josm.plugins.Splinex.SplinexPlugin.EPSILON;
-import static org.openstreetmap.josm.tools.I18n.tr;
-
-import java.awt.geom.Point2D;
-import java.util.*;
-import java.util.List;
-
-import javax.swing.JOptionPane;
-
-import org.openstreetmap.josm.command.AddCommand;
 import org.openstreetmap.josm.command.Command;
 import org.openstreetmap.josm.data.UndoRedoHandler;
 import org.openstreetmap.josm.data.coor.EastNorth;
-import org.openstreetmap.josm.data.osm.DataSet;
 import org.openstreetmap.josm.data.osm.Node;
 import org.openstreetmap.josm.data.osm.OsmPrimitive;
-import org.openstreetmap.josm.data.osm.Way;
 import org.openstreetmap.josm.data.preferences.IntegerProperty;
-import org.openstreetmap.josm.data.projection.ProjectionRegistry;
-import org.openstreetmap.josm.gui.MainApplication;
 import org.openstreetmap.josm.gui.MapView;
 import org.openstreetmap.josm.gui.NavigatableComponent;
 import org.openstreetmap.josm.plugins.Splinex.DrawSplineAction.Direction;
 import org.openstreetmap.josm.plugins.Splinex.algorithm.SplineHitCheck;
 import org.openstreetmap.josm.plugins.Splinex.algorithm.Split;
-import org.openstreetmap.josm.plugins.Splinex.command.*;
-import org.openstreetmap.josm.plugins.Splinex.exporter.CubicBezier;
+import org.openstreetmap.josm.plugins.Splinex.command.AddSplineNodeCommand;
+import org.openstreetmap.josm.plugins.Splinex.command.EditSplineCommand;
+import org.openstreetmap.josm.plugins.Splinex.command.InsertSplineNodeCommand;
+
+import java.awt.geom.Point2D;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;
 
 public class Spline {
     public static IntegerProperty PROP_SPLINEPOINTS = new IntegerProperty("edit.spline.num_points", 10);
@@ -107,46 +100,6 @@ public class Spline {
         return Optional.empty();
     }
 
-    public void finish() {
-        if (nodes.isEmpty())
-            return;
-        int detail = PROP_SPLINEPOINTS.get();
-        Way way = new Way();
-        List<Command> cmds = new LinkedList<>();
-        Iterator<SplineNode> it = nodes.iterator();
-        SplineNode sn = it.next();
-        if (sn.node.isDeleted())
-            cmds.add(new UndeleteNodeCommand(sn.node));
-        way.addNode(sn.node);
-        EastNorth a = sn.node.getEastNorth();
-        EastNorth ca = a.add(sn.cnext);
-        DataSet ds = MainApplication.getLayerManager().getEditDataSet();
-        while (it.hasNext()) {
-            sn = it.next();
-            if (sn.node.isDeleted() && sn != nodes.getFirst())
-                cmds.add(new UndeleteNodeCommand(sn.node));
-            EastNorth b = sn.node.getEastNorth();
-            EastNorth cb = b.add(sn.cprev);
-            if (!a.equalsEpsilon(ca, EPSILON) || !b.equalsEpsilon(cb, EPSILON))
-                for (EastNorth eastNorth : CubicBezier.calculatePoints(a, ca, cb, b, detail)) {
-                    Node node = new Node(ProjectionRegistry.getProjection().eastNorth2latlon(eastNorth));
-                    if (node.isOutSideWorld()) {
-                        JOptionPane.showMessageDialog(MainApplication.getMainFrame(), tr("Spline goes outside of the world."));
-                        return;
-                    }
-                    cmds.add(new AddCommand(ds, node));
-                    way.addNode(node);
-                }
-            way.addNode(sn.node);
-            a = b;
-            ca = a.add(sn.cnext);
-        }
-        if (!way.isEmpty()) {
-            cmds.add(new AddCommand(ds, way));
-            UndoRedoHandler.getInstance().add(new FinishSplineCommand(this, cmds));
-        }
-    }
-
     public boolean isCloseable(PointHandle pointHandle, Direction direction) {
         return !isClosed() &&
             nodeCount() > 1 &&
@@ -154,10 +107,6 @@ public class Spline {
                 (pointHandle.idx == 0 && direction == Direction.FORWARD) ||
                 (pointHandle.idx == nodeCount() - 1 && direction == Direction.BACKWARD)
             );
-    }
-
-    public void close() {
-        UndoRedoHandler.getInstance().add(new CloseSplineCommand(this));
     }
 
     public List<OsmPrimitive> getNodes() {

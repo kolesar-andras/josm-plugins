@@ -1,6 +1,7 @@
 package org.openstreetmap.josm.plugins.Splinex.command;
 
 import org.openstreetmap.josm.command.Command;
+import org.openstreetmap.josm.data.UndoRedoHandler;
 import org.openstreetmap.josm.data.osm.OsmPrimitive;
 import org.openstreetmap.josm.gui.MainApplication;
 import org.openstreetmap.josm.plugins.Splinex.Spline;
@@ -45,5 +46,9 @@ public class CloseSplineCommand extends Command {
     @Override
     public Icon getDescriptionIcon() {
         return ImageProvider.get("aligncircle");
+    }
+
+    public static void run(Spline spline) {
+        UndoRedoHandler.getInstance().add(new CloseSplineCommand(spline));
     }
 }

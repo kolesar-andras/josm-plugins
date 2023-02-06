@@ -234,9 +234,9 @@ public class DrawSplineAction extends MapMode implements KeyPressReleaseListener
 
     protected void handleDoubleClick(Spline spline) {
         if (spline.isCloseable(pointHandle, direction)) {
-            spline.close();
+            CloseSplineCommand.run(spline);
         } else {
-            spline.finish();
+            FinishSplineCommand.run(spline);
         }
         direction = Direction.NONE;
     }
