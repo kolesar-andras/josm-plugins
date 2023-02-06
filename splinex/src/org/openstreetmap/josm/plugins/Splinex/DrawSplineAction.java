@@ -154,6 +154,7 @@ public class DrawSplineAction extends MapMode implements KeyPressReleaseListener
     public void mouseReleased(MouseEvent e) {
         mouseDownTime = null;
         mouseDownPoint = null;
+        commandOnDrag = null;
         mouseMoved(e);
         if (direction == Direction.NONE && pointHandle != null && e.getClickCount() < 2) {
             if (pointHandle.idx >= pointHandle.getSpline().nodeCount() - 1)
@@ -172,13 +173,10 @@ public class DrawSplineAction extends MapMode implements KeyPressReleaseListener
         EastNorth en = mapFrame.mapView.getEastNorth(e.getX(), e.getY());
         if (new Node(en).isOutSideWorld()) return;
         if (commandOnDrag != null) {
-            UndoRedoHandler.getInstance().add((Command) commandOnDrag);
-            commandOnDrag = null;
-        }
-        Command cmd = UndoRedoHandler.getInstance().getLastCommand();
-        if (cmd instanceof DragCommand) {
-            DragCommand dragCommand = (DragCommand) cmd;
-            dragCommand.dragTo(en, e);
+            if (UndoRedoHandler.getInstance().getLastCommand() != commandOnDrag) {
+                UndoRedoHandler.getInstance().add((Command) commandOnDrag);
+            }
+            commandOnDrag.dragTo(en, e);
             MainApplication.getLayerManager().invalidateEditLayer();
         }
     }
