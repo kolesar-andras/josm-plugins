@@ -26,7 +26,10 @@ public class SplinexPlugin extends Plugin {
     public void mapFrameInitialized(MapFrame oldFrame, MapFrame newFrame) {
         if (oldFrame == null && newFrame != null) { // map frame added
             MapFrame map = MainApplication.getMap();
-            map.addMapMode(new IconToggleButton(new DrawSplineAction(map)));
+            DrawSplineAction drawSplineAction = new DrawSplineAction(map);
+            SplinePainter splinePainter = new SplinePainter(drawSplineAction);
+            map.addMapMode(new IconToggleButton(drawSplineAction));
+            map.mapView.addTemporaryLayer(splinePainter);
         }
     }
 

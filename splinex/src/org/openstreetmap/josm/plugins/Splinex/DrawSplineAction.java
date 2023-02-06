@@ -1,31 +1,16 @@
 // License: GPL. For details, see LICENSE file.
 package org.openstreetmap.josm.plugins.Splinex;
 
-import static org.openstreetmap.josm.tools.I18n.marktr;
-import static org.openstreetmap.josm.tools.I18n.tr;
-
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
-import java.util.*;
-
-import javax.swing.AbstractAction;
-
-import org.openstreetmap.josm.data.osm.*;
 import org.openstreetmap.josm.actions.mapmode.MapMode;
 import org.openstreetmap.josm.command.Command;
-import org.openstreetmap.josm.data.Bounds;
 import org.openstreetmap.josm.data.UndoRedoHandler;
 import org.openstreetmap.josm.data.coor.EastNorth;
 import org.openstreetmap.josm.data.osm.Node;
-import org.openstreetmap.josm.data.osm.visitor.paint.MapPaintSettings;
+import org.openstreetmap.josm.data.osm.OsmPrimitive;
 import org.openstreetmap.josm.data.preferences.NamedColorProperty;
 import org.openstreetmap.josm.gui.MainApplication;
 import org.openstreetmap.josm.gui.MapFrame;
-import org.openstreetmap.josm.gui.MapView;
 import org.openstreetmap.josm.gui.layer.Layer;
-import org.openstreetmap.josm.gui.layer.MapViewPaintable;
 import org.openstreetmap.josm.gui.util.KeyPressReleaseListener;
 import org.openstreetmap.josm.gui.util.ModifierExListener;
 import org.openstreetmap.josm.plugins.Splinex.algorithm.ClosestPoint;
@@ -36,7 +21,17 @@ import org.openstreetmap.josm.spi.preferences.Config;
 import org.openstreetmap.josm.tools.ImageProvider;
 import org.openstreetmap.josm.tools.Shortcut;
 
-public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPressReleaseListener, ModifierExListener {
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.util.Optional;
+
+import static org.openstreetmap.josm.tools.I18n.marktr;
+import static org.openstreetmap.josm.tools.I18n.tr;
+
+public class DrawSplineAction extends MapMode implements KeyPressReleaseListener, ModifierExListener {
     private final Cursor cursorJoinNode = ImageProvider.getCursor("crosshair", "joinnode");
     private final Cursor cursorJoinWay = ImageProvider.getCursor("crosshair", "joinway");
 
@@ -47,10 +42,10 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
     );
     private final BackSpaceAction backspaceAction = new BackSpaceAction();
 
-    private final MapFrame mapFrame;
-    private final NodeHighlight nodeHighlight = new NodeHighlight();
-    private final DatasetListener dataSetListener = new DatasetListener();
-    private final LayerListener layerListener = new LayerListener();
+    protected final MapFrame mapFrame;
+    protected final NodeHighlight nodeHighlight = new NodeHighlight();
+    protected final DatasetListener dataSetListener = new DatasetListener();
+    protected final LayerListener layerListener = new LayerListener();
 
     public DrawSplineAction(MapFrame mapFrame) {
         super(
@@ -66,7 +61,6 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
 
         layerListener.register();
         this.mapFrame = mapFrame;
-        this.mapFrame.mapView.addTemporaryLayer(this);
         readPreferences();
     }
 
@@ -323,24 +317,6 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
             redraw = true;
         }
         return redraw;
-    }
-
-    @Override
-    public void paint(Graphics2D graphics2D, MapView mapView, Bounds box) {
-        Spline spline = layerListener.getSpline();
-        if (spline == null) return;
-        graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        spline.paint(graphics2D, mapView, rubberLineColor, Color.green, helperEndpoint, direction);
-        spline.paintProposedNodes(graphics2D, mapView);
-        paintPointHandle(graphics2D, mapView);
-    }
-
-    protected void paintPointHandle(Graphics2D graphics2D, MapView mapView) {
-        if (pointHandle != null && (pointHandle.role != PointHandle.Role.NODE || nodeHighlight.isNodeDeleted())) {
-            graphics2D.setColor(MapPaintSettings.INSTANCE.getSelectedColor());
-            Point point = mapView.getPoint(pointHandle.getPoint());
-            graphics2D.fillRect(point.x - 1, point.y - 1, 3, 3);
-        }
     }
 
     @Override
