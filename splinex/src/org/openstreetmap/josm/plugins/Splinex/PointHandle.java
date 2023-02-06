@@ -19,8 +19,18 @@ public class PointHandle {
         this.role = role;
     }
 
-    public PointHandle otherPoint(Role role) {
+    public PointHandle getHandleOfRole(Role role) {
         return new PointHandle(spline, idx, role);
+    }
+
+    public PointHandle getRetractedHandle() {
+        if (sn.cnext.length() == 0.0) {
+            return getHandleOfRole(Role.CONTROL_NEXT);
+        } else if (sn.cprev.length() == 0.0) {
+            return getHandleOfRole(Role.CONTROL_PREV);
+        } else {
+            return null;
+        }
     }
 
     public Spline getSpline() {

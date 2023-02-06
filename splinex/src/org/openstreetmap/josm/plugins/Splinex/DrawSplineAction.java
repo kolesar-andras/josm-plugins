@@ -235,8 +235,8 @@ public class DrawSplineAction extends MapMode implements MapViewPaintable, KeyPr
         } else if (pointHandle.role != PointHandle.Role.NODE) {
             commandOnDrag = new MoveSplinePointHandleCommand(pointHandle, ctrl);
         } else if (ctrl) {
-            pointHandle = pointHandle.otherPoint(PointHandle.Role.CONTROL_NEXT);
-            commandOnDrag = new MoveSplinePointHandleCommand(pointHandle, false);
+            pointHandle = pointHandle.getRetractedHandle();
+            if (pointHandle != null) commandOnDrag = new MoveSplinePointHandleCommand(pointHandle, false);
         } else {
             commandOnDrag = new MoveSplineNodeCommand(pointHandle.sn.node);
         }
