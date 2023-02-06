@@ -30,6 +30,10 @@ public class MoveSplinePointHandleCommand extends EditSplineCommand implements D
         lockCounterpartLength = (max == 0.0) || (min / max > LOCK_LENGTH_THRESHOLD);
     }
 
+    public MoveSplinePointHandleCommand(PointHandle pointHandle) {
+        this(pointHandle, false);
+    }
+
     @Override
     public void dragTo(EastNorth en, MouseEvent e) {
         pointHandle.movePoint(en);

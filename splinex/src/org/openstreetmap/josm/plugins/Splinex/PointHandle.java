@@ -110,6 +110,15 @@ public class PointHandle {
     }
 
     public enum Role {
-        NODE, CONTROL_PREV, CONTROL_NEXT
+        NODE, CONTROL_PREV, CONTROL_NEXT;
+
+        public static Role matchingDirection(DrawSplineAction.Direction direction) {
+            switch (direction) {
+                case FORWARD: return CONTROL_NEXT;
+                case BACKWARD: return CONTROL_PREV;
+                default: throw new IllegalArgumentException();
+            }
+        }
+
     }
 }

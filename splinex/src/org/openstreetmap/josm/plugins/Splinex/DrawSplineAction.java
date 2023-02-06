@@ -135,7 +135,7 @@ public class DrawSplineAction extends MapMode implements KeyPressReleaseListener
         pointHandle = spline.getNearestPointHandle(mapFrame.mapView, mouseDownPoint);
         if (pointHandle != null && e.getClickCount() != 2) {
             handleClickOnPointHandle();
-        } else if (!spline.doesHit(e.getX(), e.getY(), mapFrame.mapView)) {
+        } else if (pointHandle == null && !spline.doesHit(e.getX(), e.getY(), mapFrame.mapView)) {
             handleClickOutsideSpline(spline, e);
         } else if (e.getClickCount() == 2) {
             handleDoubleClick(spline);
@@ -148,7 +148,7 @@ public class DrawSplineAction extends MapMode implements KeyPressReleaseListener
         NONE, FORWARD, BACKWARD
     }
 
-    protected Direction direction;
+    protected Direction direction = Direction.NONE;
 
     @Override
     public void mouseReleased(MouseEvent e) {
@@ -212,7 +212,6 @@ public class DrawSplineAction extends MapMode implements KeyPressReleaseListener
     }
 
     protected void handleDoubleClick(Spline spline) {
-        if (pointHandle != null && pointHandle.role != PointHandle.Role.NODE) return;
         if (spline.isCloseable(pointHandle, direction)) {
             spline.close();
         } else {
@@ -270,7 +269,8 @@ public class DrawSplineAction extends MapMode implements KeyPressReleaseListener
         }
         int idx = direction == Direction.BACKWARD ? 0 : spline.nodeCount();
         UndoRedoHandler.getInstance().add(new AddSplineNodeCommand(spline, new SplineNode(node), existing, idx));
-        pointHandle = new PointHandle(spline, idx, direction == Direction.BACKWARD ? PointHandle.Role.CONTROL_PREV : PointHandle.Role.CONTROL_NEXT);
+        pointHandle = new PointHandle(spline, idx, PointHandle.Role.matchingDirection(direction));
+        commandOnDrag = new MoveSplinePointHandleCommand(pointHandle);
         MainApplication.getLayerManager().invalidateEditLayer();
     }
 
