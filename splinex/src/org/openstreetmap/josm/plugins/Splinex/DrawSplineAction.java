@@ -131,7 +131,6 @@ public class DrawSplineAction extends MapMode implements KeyPressReleaseListener
             return;
         }
         if (!mapFrame.mapView.isActiveLayerDrawable()) return;
-        if (updateSelection()) return;
         Spline spline = layerListener.getSpline();
         if (spline == null) return;
         helperEndpoint = null;
@@ -271,6 +270,7 @@ public class DrawSplineAction extends MapMode implements KeyPressReleaseListener
     }
 
     protected void handleClickOutsideSpline(Spline spline, MouseEvent e) {
+        if (updateSelection()) return;
         if (spline.isClosed()) return;
         if (direction == Direction.NONE) {
             if (spline.nodeCount() < 2) {
