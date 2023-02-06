@@ -55,6 +55,18 @@ public class PointHandle {
         throw new AssertionError();
     }
 
+    public void retractHandle() {
+        switch (role) {
+            case CONTROL_PREV:
+                sn.cprev = EastNorth.ZERO;
+                return;
+            case CONTROL_NEXT:
+                sn.cnext = EastNorth.ZERO;
+                return;
+        }
+        throw new AssertionError();
+    }
+
     public void moveCounterpart(boolean lockLength) {
         if (role == Role.CONTROL_NEXT) {
             sn.cprev = computeCounterpart(sn.cprev, sn.cnext, lockLength);

@@ -1,9 +1,11 @@
 package org.openstreetmap.josm.plugins.Splinex.command;
 
 import org.openstreetmap.josm.command.Command;
+import org.openstreetmap.josm.data.UndoRedoHandler;
 import org.openstreetmap.josm.data.coor.EastNorth;
 import org.openstreetmap.josm.data.osm.OsmPrimitive;
 import org.openstreetmap.josm.gui.MainApplication;
+import org.openstreetmap.josm.plugins.Splinex.PointHandle;
 import org.openstreetmap.josm.plugins.Splinex.SplineNode;
 import org.openstreetmap.josm.tools.ImageProvider;
 
@@ -54,7 +56,9 @@ public class EditSplineCommand extends Command {
         return ImageProvider.get("data", "node");
     }
 
-    public boolean sNodeIs(SplineNode node) {
-        return sn == node;
+    public static void retractHandle(PointHandle pointHandle) {
+        UndoRedoHandler.getInstance().add(new EditSplineCommand(pointHandle.sn));
+        pointHandle.retractHandle();
     }
+
 }
