@@ -17,6 +17,8 @@ import org.openstreetmap.josm.gui.util.KeyPressReleaseListener;
 import org.openstreetmap.josm.gui.util.ModifierExListener;
 import org.openstreetmap.josm.plugins.Splinex.algorithm.ClosestPoint;
 import org.openstreetmap.josm.plugins.Splinex.command.*;
+import org.openstreetmap.josm.plugins.Splinex.importer.SchneiderImporter;
+import org.openstreetmap.josm.plugins.Splinex.importer.ShemanarevImporter;
 import org.openstreetmap.josm.plugins.Splinex.listener.DatasetListener;
 import org.openstreetmap.josm.plugins.Splinex.listener.LayerListener;
 import org.openstreetmap.josm.spi.preferences.Config;
@@ -79,7 +81,6 @@ public class DrawSplineAction extends MapMode implements KeyPressReleaseListener
         mapFrame.keyDetector.addModifierExListener(this);
         mapFrame.keyDetector.addKeyListener(this);
         dataSetListener.register();
-        CreateSplineCommand.fromSelection(layerListener.getSpline());
     }
 
     protected Color rubberLineColor;
@@ -375,6 +376,14 @@ public class DrawSplineAction extends MapMode implements KeyPressReleaseListener
         if (e.getKeyCode() == KeyEvent.VK_ESCAPE && direction != Direction.NONE) {
             direction = Direction.NONE;
             MainApplication.getLayerManager().invalidateEditLayer();
+            e.consume();
+        }
+        if (e.getKeyCode() == KeyEvent.VK_1 && e.isControlDown()) {
+            CreateSplineCommand.fromSelection(layerListener.getSpline(), new ShemanarevImporter());
+            e.consume();
+        }
+        if (e.getKeyCode() == KeyEvent.VK_2 && e.isControlDown()) {
+            CreateSplineCommand.fromSelection(layerListener.getSpline(), new SchneiderImporter());
             e.consume();
         }
     }

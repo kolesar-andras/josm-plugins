@@ -11,18 +11,20 @@ import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SchneiderImporter {
-    public static Spline fromNodes(List<Node> nodes, double smooth, boolean closed) {
+public class SchneiderImporter implements Importer {
+    public double error = 1.0;
+
+    public Spline fromNodes(List<Node> nodes, boolean closed) {
         Spline spline = new Spline();
         List<Point2D.Double> points = new ArrayList<>();
         for (Node node : nodes) {
             EastNorth eastNorth = node.getEastNorth();
             points.add(new Point2D.Double(eastNorth.getX(), eastNorth.getY()));
         }
-        BezierPath path = Bezier.fitBezierPath(points, 1.0);
+        BezierPath path = Bezier.fitBezierPath(points, error);
         for (BezierPath.Node node : path) {
             EastNorth[] c = new EastNorth[3];
-            for (short i=0; i<3; i++) {
+            for (short i = 0; i < 3; i++) {
                 c[i] = new EastNorth(node.x[i], node.y[i]);
             }
             spline.nodes.add(
@@ -35,7 +37,7 @@ public class SchneiderImporter {
         }
         if (closed) {
             spline.nodes.getFirst().cprev = spline.nodes.getLast().cprev;
-            spline.nodes.remove(spline.nodes.size()-1);
+            spline.nodes.remove(spline.nodes.size() - 1);
             spline.nodes.close();
         }
         return spline;

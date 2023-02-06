@@ -9,8 +9,10 @@ import java.util.List;
 
 import static java.lang.Math.sqrt;
 
-public class ShemanarevImporter {
-    public static Spline fromNodes(List<Node> nodes, double smooth, boolean closed) {
+public class ShemanarevImporter implements Importer {
+    public double smooth = 0.5;
+
+    public Spline fromNodes(List<Node> nodes, boolean closed) {
         Spline spline = new Spline();
         int size = nodes.size();
         int last;
