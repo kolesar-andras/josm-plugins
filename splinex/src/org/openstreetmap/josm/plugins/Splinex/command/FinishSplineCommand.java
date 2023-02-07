@@ -61,54 +61,50 @@ public class FinishSplineCommand extends SequenceCommand {
         if (spline.way != null) {
             way.setNodes(spline.way.getNodes());
         }
-        Iterator<SplineNode> it = spline.nodes.iterator();
-        SplineNode sn = it.next();
         Direction direction;
-        if (sn.node.isDeleted())
-            cmds.add(new UndeleteNodeCommand(sn.node));
-        if (!way.containsNode(sn.node)) {
-            if (!ds.containsNode(sn.node)) {
-                cmds.add(new AddCommand(ds, sn.node));
-            }
-            way.addNode(sn.node);
-        }
-        EastNorth a = sn.node.getEastNorth();
-        EastNorth ca = a.add(sn.cnext);
+        SplineNode lastSplineNode = null;
+        EastNorth a = null;
+        EastNorth ca = null;
+        Iterator<SplineNode> it = spline.nodes.iterator();
         while (it.hasNext()) {
-            int lastindex = findNodeIndex(sn.node, way);
-            sn = it.next();
-            if (sn.node.isDeleted() && sn != spline.nodes.getFirst())
-                cmds.add(new UndeleteNodeCommand(sn.node));
-            EastNorth b = sn.node.getEastNorth();
-            EastNorth cb = b.add(sn.cprev);
-            if (!way.containsNode(sn.node)) {
-                if (!ds.containsNode(sn.node)) {
-                    cmds.add(new AddCommand(ds, sn.node));
+            SplineNode splineNode = it.next();
+            if (splineNode.node.isDeleted()) {
+                cmds.add(new UndeleteNodeCommand(splineNode.node));
+            }
+            if (!way.containsNode(splineNode.node)) {
+                if (!ds.containsNode(splineNode.node)) {
+                    cmds.add(new AddCommand(ds, splineNode.node));
                 }
-                way.addNode(sn.node);
+                way.addNode(splineNode.node);
             }
-            int index = findNodeIndex(sn.node, way);
-            if (lastindex < index) {
-                direction = Direction.FORWARD;
-            } else if (lastindex > index) {
-                direction = Direction.BACKWARD;
-            } else {
-                throw new RuntimeException("Node indexes in way are equal");
-            }
-            if (!a.equalsEpsilon(ca, EPSILON) || !b.equalsEpsilon(cb, EPSILON)) {
-                for (EastNorth eastNorth : CubicBezier.calculatePoints(a, ca, cb, b, detail)) {
-                    Node node = new Node(ProjectionRegistry.getProjection().eastNorth2latlon(eastNorth));
-                    if (node.isOutSideWorld()) {
-                        JOptionPane.showMessageDialog(MainApplication.getMainFrame(), tr("Spline goes outside of the world."));
-                        return;
+            EastNorth b = splineNode.node.getEastNorth();
+            EastNorth cb = b.add(splineNode.cprev);
+            if (lastSplineNode != null) {
+                int lastIndex = findNodeIndex(lastSplineNode.node, way);
+                int index = findNodeIndex(splineNode.node, way);
+                if (lastIndex < index) {
+                    direction = Direction.FORWARD;
+                } else if (lastIndex > index) {
+                    direction = Direction.BACKWARD;
+                } else {
+                    throw new RuntimeException("Node indexes in way are equal");
+                }
+                if (!a.equalsEpsilon(ca, EPSILON) || !b.equalsEpsilon(cb, EPSILON)) {
+                    for (EastNorth eastNorth : CubicBezier.calculatePoints(a, ca, cb, b, detail)) {
+                        Node node = new Node(ProjectionRegistry.getProjection().eastNorth2latlon(eastNorth));
+                        if (node.isOutSideWorld()) {
+                            JOptionPane.showMessageDialog(MainApplication.getMainFrame(), tr("Spline goes outside of the world."));
+                            return;
+                        }
+                        cmds.add(new AddCommand(ds, node));
+                        if (direction == Direction.FORWARD) lastIndex++;
+                        way.addNode(lastIndex, node);
                     }
-                    cmds.add(new AddCommand(ds, node));
-                    if (direction == Direction.FORWARD) lastindex++;
-                    way.addNode(lastindex, node);
                 }
             }
+            lastSplineNode = splineNode;
             a = b;
-            ca = a.add(sn.cnext);
+            ca = a.add(splineNode.cnext);
         }
         if (spline.way == null) {
             cmds.add(new AddCommand(ds, way));
