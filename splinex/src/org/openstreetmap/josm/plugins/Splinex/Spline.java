@@ -10,7 +10,6 @@ import org.openstreetmap.josm.data.osm.Way;
 import org.openstreetmap.josm.data.preferences.IntegerProperty;
 import org.openstreetmap.josm.gui.MapView;
 import org.openstreetmap.josm.gui.NavigatableComponent;
-import org.openstreetmap.josm.plugins.Splinex.DrawSplineAction.Direction;
 import org.openstreetmap.josm.plugins.Splinex.algorithm.SplineHitCheck;
 import org.openstreetmap.josm.plugins.Splinex.algorithm.Split;
 import org.openstreetmap.josm.plugins.Splinex.command.AddSplineNodeCommand;

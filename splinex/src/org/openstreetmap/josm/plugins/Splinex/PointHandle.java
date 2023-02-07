@@ -124,7 +124,7 @@ public class PointHandle {
     public enum Role {
         NODE, CONTROL_PREV, CONTROL_NEXT;
 
-        public static Role matchingDirection(DrawSplineAction.Direction direction) {
+        public static Role matchingDirection(Direction direction) {
             switch (direction) {
                 case FORWARD: return CONTROL_NEXT;
                 case BACKWARD: return CONTROL_PREV;

@@ -20,28 +20,35 @@ import static org.openstreetmap.josm.gui.MainApplication.getLayerManager;
 import static org.openstreetmap.josm.tools.I18n.tr;
 
 public class CreateSplineCommand extends SequenceCommand {
-    private final Spline spline;
-    private final NodeList nodes;
-    private NodeList previous;
+    private final Spline target;
+    private final Spline source;
 
-    public CreateSplineCommand(Spline spline, NodeList nodes, List<Command> cmds) {
+    public CreateSplineCommand(Spline target, Spline source, List<Command> cmds) {
         super(getLayerManager().getEditDataSet(), tr("Create spline"), cmds, false);
-        this.spline = spline;
-        this.nodes = nodes;
+        this.target = target;
+        this.source = source;
     }
 
     @Override
     public boolean executeCommand() {
         super.executeCommand();
-        previous = spline.nodes;
-        spline.nodes = nodes;
+        swap();
         return true;
     }
 
     @Override
     public void undoCommand() {
-        spline.nodes = previous;
+        swap();
         super.undoCommand();
+    }
+
+    private void swap() {
+        NodeList nodeList = target.nodes;
+        target.nodes = source.nodes;
+        source.nodes = nodeList;
+        Way way = target.way;
+        target.way = source.way;
+        source.way = way;
     }
 
     public static void fromSelection(Spline target, Importer importer) {
@@ -58,7 +65,7 @@ public class CreateSplineCommand extends SequenceCommand {
                 cmds.add(new AddCommand(dataset, sn.node));
             }
         }
-        UndoRedoHandler.getInstance().add(new CreateSplineCommand(target, spline.nodes, cmds));
+        UndoRedoHandler.getInstance().add(new CreateSplineCommand(target, spline, cmds));
         MainApplication.getLayerManager().invalidateEditLayer();
     }
 

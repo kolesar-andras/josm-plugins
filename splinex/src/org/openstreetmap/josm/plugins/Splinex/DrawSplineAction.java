@@ -148,10 +148,6 @@ public class DrawSplineAction extends MapMode implements KeyPressReleaseListener
         }
     }
 
-    enum Direction {
-        NONE, FORWARD, BACKWARD
-    }
-
     protected Direction direction = Direction.NONE;
 
     @Override

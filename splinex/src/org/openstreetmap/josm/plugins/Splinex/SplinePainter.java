@@ -34,14 +34,14 @@ public class SplinePainter implements MapViewPaintable {
         paintPointHandle(graphics2D, mapView);
     }
 
-    public void paintSpline(Graphics2D g, MapView mv, Spline spline, Color curveColor, Color ctlColor, Point helperEndpoint, DrawSplineAction.Direction direction) {
+    public void paintSpline(Graphics2D g, MapView mv, Spline spline, Color curveColor, Color ctlColor, Point helperEndpoint, Direction direction) {
         if (spline.nodes.isEmpty())
             return;
         final GeneralPath curv = new GeneralPath();
         final GeneralPath ctl = new GeneralPath();
 
         Point2D cbPrev = null;
-        if (helperEndpoint != null && direction == DrawSplineAction.Direction.BACKWARD) {
+        if (helperEndpoint != null && direction == Direction.BACKWARD) {
             cbPrev = new Point2D.Double(helperEndpoint.x, helperEndpoint.y);
             curv.moveTo(helperEndpoint.x, helperEndpoint.y);
         }
@@ -64,7 +64,7 @@ public class SplinePainter implements MapViewPaintable {
                 curv.curveTo(cbPrev.getX(), cbPrev.getY(), ca.getX(), ca.getY(), pt.getX(), pt.getY());
             cbPrev = cb;
         }
-        if (helperEndpoint != null && direction == DrawSplineAction.Direction.FORWARD) {
+        if (helperEndpoint != null && direction == Direction.FORWARD) {
             curv.curveTo(cbPrev.getX(), cbPrev.getY(), helperEndpoint.getX(), helperEndpoint.getY(),
                 helperEndpoint.getX(), helperEndpoint.getY());
         }
