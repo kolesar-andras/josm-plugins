@@ -38,7 +38,8 @@ public class FinishSplineCommand extends SequenceCommand {
 
     @Override
     public boolean executeCommand() {
-        this.nodes = (NodeList) spline.nodes.clone();
+        nodes = (NodeList) spline.nodes.clone();
+        way = spline.way;
         spline.nodes.clear();
         spline.way = null;
         return super.executeCommand();
@@ -52,8 +53,20 @@ public class FinishSplineCommand extends SequenceCommand {
     }
 
     public static void run(Spline spline) {
-        if (spline.nodes.isEmpty())
+        try {
+            createSplineNodes(spline);
+        } catch (OutsideWorldException exception) {
+            JOptionPane.showMessageDialog(
+                MainApplication.getMainFrame(),
+                tr("Spline goes outside of the world.")
+            );
+        }
+    }
+
+    private static void createSplineNodes(Spline spline) {
+        if (spline.nodes.isEmpty()) {
             return;
+        }
         DataSet ds = MainApplication.getLayerManager().getEditDataSet();
         List<Command> cmds = new LinkedList<>();
         Way way = new Way();
@@ -108,11 +121,12 @@ public class FinishSplineCommand extends SequenceCommand {
             for (EastNorth eastNorth : CubicBezier.calculatePoints(a, ca, cb, b, detail)) {
                 Node node = new Node(ProjectionRegistry.getProjection().eastNorth2latlon(eastNorth));
                 if (node.isOutSideWorld()) {
-                    JOptionPane.showMessageDialog(MainApplication.getMainFrame(), tr("Spline goes outside of the world."));
-                    return;
+                    throw new OutsideWorldException();
                 }
                 cmds.add(new AddCommand(ds, node));
-                if (direction == Direction.FORWARD) lastIndex++;
+                if (direction == Direction.FORWARD) {
+                    lastIndex++;
+                }
                 way.addNode(lastIndex, node);
             }
         }
@@ -127,5 +141,7 @@ public class FinishSplineCommand extends SequenceCommand {
         }
         throw new IllegalArgumentException("Node not found in way");
     }
+
+    static class OutsideWorldException extends IllegalArgumentException {}
 
 }
