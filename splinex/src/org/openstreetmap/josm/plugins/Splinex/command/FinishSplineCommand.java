@@ -54,17 +54,13 @@ public class FinishSplineCommand extends SequenceCommand {
     public static void run(Spline spline) {
         if (spline.nodes.isEmpty())
             return;
-        int detail = Spline.PROP_SPLINEPOINTS.get();
         DataSet ds = MainApplication.getLayerManager().getEditDataSet();
         List<Command> cmds = new LinkedList<>();
         Way way = new Way();
         if (spline.way != null) {
             way.setNodes(spline.way.getNodes());
         }
-        Direction direction;
         SplineNode lastSplineNode = null;
-        EastNorth a = null;
-        EastNorth ca = null;
         Iterator<SplineNode> it = spline.nodes.iterator();
         while (it.hasNext()) {
             SplineNode splineNode = it.next();
@@ -77,34 +73,10 @@ public class FinishSplineCommand extends SequenceCommand {
                 }
                 way.addNode(splineNode.node);
             }
-            EastNorth b = splineNode.node.getEastNorth();
-            EastNorth cb = b.add(splineNode.cprev);
             if (lastSplineNode != null) {
-                int lastIndex = findNodeIndex(lastSplineNode.node, way);
-                int index = findNodeIndex(splineNode.node, way);
-                if (lastIndex < index) {
-                    direction = Direction.FORWARD;
-                } else if (lastIndex > index) {
-                    direction = Direction.BACKWARD;
-                } else {
-                    throw new RuntimeException("Node indexes in way are equal");
-                }
-                if (!a.equalsEpsilon(ca, EPSILON) || !b.equalsEpsilon(cb, EPSILON)) {
-                    for (EastNorth eastNorth : CubicBezier.calculatePoints(a, ca, cb, b, detail)) {
-                        Node node = new Node(ProjectionRegistry.getProjection().eastNorth2latlon(eastNorth));
-                        if (node.isOutSideWorld()) {
-                            JOptionPane.showMessageDialog(MainApplication.getMainFrame(), tr("Spline goes outside of the world."));
-                            return;
-                        }
-                        cmds.add(new AddCommand(ds, node));
-                        if (direction == Direction.FORWARD) lastIndex++;
-                        way.addNode(lastIndex, node);
-                    }
-                }
+                createSplineSegmentNodes(lastSplineNode, splineNode, way, cmds, ds);
             }
             lastSplineNode = splineNode;
-            a = b;
-            ca = a.add(splineNode.cnext);
         }
         if (spline.way == null) {
             cmds.add(new AddCommand(ds, way));
@@ -113,6 +85,36 @@ public class FinishSplineCommand extends SequenceCommand {
         if (!way.isEmpty()) {
             cmds.add(new ChangeNodesCommand(ds, spline.way, way.getNodes()));
             UndoRedoHandler.getInstance().add(new FinishSplineCommand(spline, cmds));
+        }
+    }
+
+    private static void createSplineSegmentNodes(SplineNode lastSplineNode, SplineNode splineNode, Way way, List<Command> cmds, DataSet ds) {
+        int lastIndex = findNodeIndex(lastSplineNode.node, way);
+        int index = findNodeIndex(splineNode.node, way);
+        Direction direction;
+        if (lastIndex < index) {
+            direction = Direction.FORWARD;
+        } else if (lastIndex > index) {
+            direction = Direction.BACKWARD;
+        } else {
+            throw new RuntimeException("Node indexes in way are equal");
+        }
+        EastNorth a = lastSplineNode.node.getEastNorth();
+        EastNorth b = splineNode.node.getEastNorth();
+        EastNorth ca = a.add(lastSplineNode.cnext);
+        EastNorth cb = b.add(splineNode.cprev);
+        if (!a.equalsEpsilon(ca, EPSILON) || !b.equalsEpsilon(cb, EPSILON)) {
+            int detail = Spline.PROP_SPLINEPOINTS.get();
+            for (EastNorth eastNorth : CubicBezier.calculatePoints(a, ca, cb, b, detail)) {
+                Node node = new Node(ProjectionRegistry.getProjection().eastNorth2latlon(eastNorth));
+                if (node.isOutSideWorld()) {
+                    JOptionPane.showMessageDialog(MainApplication.getMainFrame(), tr("Spline goes outside of the world."));
+                    return;
+                }
+                cmds.add(new AddCommand(ds, node));
+                if (direction == Direction.FORWARD) lastIndex++;
+                way.addNode(lastIndex, node);
+            }
         }
     }
 
