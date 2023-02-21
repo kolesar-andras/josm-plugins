@@ -101,7 +101,7 @@ public class EditGpxMode extends MapMode implements LayerChangeListener {
             }
         }
         oldRect = null;
-        MainApplication.getMap().mapView.repaint();
+        currentEditLayer.invalidate();
     }
 
     /**
@@ -175,7 +175,7 @@ public class EditGpxMode extends MapMode implements LayerChangeListener {
             MainApplication.getLayerManager().addLayer(currentEditLayer);
             currentEditLayer.initializeImport();
         }
-        MainApplication.getMap().mapView.repaint();
+        currentEditLayer.invalidate();
     }
 
     @Override

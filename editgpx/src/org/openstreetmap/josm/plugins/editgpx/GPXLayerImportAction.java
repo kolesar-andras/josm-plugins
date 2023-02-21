@@ -102,7 +102,6 @@ class GPXLayerImportAction extends AbstractAction {
                     this.data.load(gpx.data);
                 }
             }
-            MainApplication.getMap().mapView.repaint();
 
         } else {
             // no gps layer
